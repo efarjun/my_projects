@@ -9,8 +9,8 @@ module "subnet" {
 }
 module "ec2" {
   source = "./modules/ec2"
-  ami = "ami-0c293f3f676ec4f90"
+  ami = "ami-0c293f3f676ec4f90" # Amazon Linux 2 AMI
   instance_type = "t2.micro"
-  key_name = "kp_prac-20220304"
+  key_name = "<Name of Key Pair>"
   subnet_id = module.subnet.subnet_id
 }
