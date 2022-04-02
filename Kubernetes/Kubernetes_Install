@@ -1,0 +1,19 @@
+#Install Kubernetes
+
+#Enter the following to add a signing key:
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
+
+#Kubernetes is not included in the default repositories. To add them, enter the following:
+sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+
+#Install Kubernetes tools:
+sudo apt-get install kubeadm kubelet kubectl
+sudo apt-mark hold kubeadm kubelet kubectl
+
+#To change the hostname of the nodes:
+
+#(On Master Node):
+sudo hostnamectl set-hostname master-node
+
+#(On Worker Node):
+#sudo hostnamectl set-hostname worker01
