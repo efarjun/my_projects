@@ -1,0 +1,19 @@
+#Install Docker
+
+#Update the package list with the command:
+sudo apt-get update
+
+#Install Docker with the command:
+sudo apt-get install docker.io
+
+#Check the installation (and version) by entering the following:
+docker –v
+
+#Set Docker to launch at boot by entering the following:
+sudo systemctl enable docker
+
+#Verify Docker is running:
+sudo systemctl status docker
+
+#To start Docker if it’s not running:
+sudo systemctl start docker
