@@ -1,0 +1,80 @@
+#Update the system repository index:
+sudo apt update
+
+#Install Nginx:
+sudo apt install nginx
+sudo systemctl start nginx
+
+#Create Prometheus Users:
+sudo useradd --no-create-home --shell /bin/false prome
+sudo useradd --no-create-home --shell /bin/false node_exporter
+
+#Create Prometheus Directories:
+sudo mkdir /etc/prometheus
+sudo mkdir /var/lib/prometheus
+
+#Download the latest stable release of Prometheus:
+wget https://github.com/prometheus/prometheus/releases/download/v2.0.0/prometheus-2.0.0.linux-amd64.tar.gz
+
+#Extract the Prometheus archive:
+tar xvf prometheus-2.0.0.linux-amd64.tar.gz
+
+#Copy the “prometheus” and “promtool” binary files to the /usr/local/bin:
+sudo cp prometheus-2.0.0.linux-amd64/prometheus /usr/local/bin/
+sudo cp prometheus-2.0.0.linux-amd64/promtool /usr/local/bin/
+
+#Change the ownership of the files:
+sudo chown prome:prome /usr/local/bin/prometheus
+sudo chown prome:prome /usr/local/bin/promtool
+
+#Copy the required libraries to the /etc/prometheus directory:
+sudo cp -r prometheus-2.0.0.linux-amd64/consoles /etc/prometheus
+sudo cp -r prometheus-2.0.0.linux-amd64/console_libraries /etc/prometheus
+
+#Change the ownership of the files:
+sudo chown -R prome:prome /etc/prometheus/consoles
+sudo chown -R prome:prome /etc/prometheus/console_libraries
+
+#Edit the configuration file:
+sudo nano /etc/prometheus/prometheus.yml
+
+#Copy and paste the following lines into the terminal:
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+
+#Create another file for the systemd service:
+sudo nano /etc/systemd/system/prometheus.service
+
+#Copy and paste the following lines into the terminal:
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=prome
+Group=prome
+Type=simple
+ExecStart=/usr/local/bin/prometheus \
+    --config.file /etc/prometheus/prometheus.yml \
+    --storage.tsdb.path /var/lib/prometheus/ \
+    --web.console.templates=/etc/prometheus/consoles \
+    --web.console.libraries=/etc/prometheus/console_libraries
+
+[Install]
+WantedBy=multi-user.target
+
+#Reload systemd:
+sudo systemctl daemon-reload
+
+#Start the Prometheus service:
+sudo systemctl start prometheus
+
+#Enable the Prometheus service at system boot:
+sudo systemctl enable prometheus
