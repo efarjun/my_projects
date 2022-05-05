@@ -3,22 +3,32 @@
 #Download and extract the latest release of eksctl with the following command.
 curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 
-#Move the extracted binary to /usr/local/bin.
+#Move the extracted binary to /usr/local/bin:
 sudo mv /tmp/eksctl /usr/local/bin
 
 #Test that your installation was successful with the following command:
 eksctl version
+
+#Install kubectl CLI tool if needed:
+
+#Download the latest release with the command:
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 #Create cluster:
 eksctl create cluster \
     --name my-cluster \
     --version 1.22 \
     --without-nodegroup \
-    --with-oidc
+    --with-oidc \
+    --zones us-east-1a,us-east-1b,us-east-1c 
 
 #Associate an OIDC identity provider:
 
 #Create a file named associate-identity-provider.yaml:
+
+cat << EOF > associate-identity-provider.yaml
 ---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -32,26 +42,20 @@ identityProviders:
     type: oidc
     issuerUrl: https://example.com #Replace with the issuer URL
     clientId: sts.amazonaws.com
+EOF
 
 #Create the provider:
 eksctl associate identityprovider -f associate-identity-provider.yaml
 
-Create a managed node group:
+Create a self-managed node group:
 eksctl create nodegroup \
   --cluster my-cluster \
   --region us-east-1 \
   --name my-mng \
-  --node-type m5.large \
+  --node-type t3.medium \
   --nodes 2 \
   --nodes-min 1 \
   --nodes-max 2 \
+  --managed=false \
   #--ssh-access \
   #--ssh-public-key my-key
-
-#Install kubectl CLI tool if needed:
-
-#Download the latest release with the command:
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-
-#Install kubectl:
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
