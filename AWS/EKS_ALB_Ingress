@@ -39,4 +39,5 @@ kubectl get deployment -n kube-system aws-load-balancer-controller
 
 # kubernetes.io/cluster/my-cluster : owned
 
-# Deploy your application
+# Deploy a sample application
+# https://docs.aws.amazon.com/eks/latest/userguide/sample-deployment.html
