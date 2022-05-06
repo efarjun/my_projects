@@ -1,40 +1,21 @@
+# Install Helm if needed:
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+chmod 700 get_helm.sh
+./get_helm.sh
+
 curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.1/docs/install/iam_policy.json
 
 aws iam create-policy \
     --policy-name AWSLoadBalancerControllerIAMPolicy \
     --policy-document file://iam_policy.json
 
-#Create IAM Trust Policy for EKS:
-
-cat << EOF > cluster-trust-policy.json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-
-aws iam create-role \
-  --role-name AmazonEKSLoadBalancerControllerRole \
-  --assume-role-policy-document file://"cluster-trust-policy.json"
-
-aws iam attach-role-policy \
-  --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy \
-  --role-name "AmazonEKSLoadBalancerControllerRole"
 
 eksctl create iamserviceaccount \
   --cluster=my-cluster \
   --namespace=kube-system \
   --name=aws-load-balancer-controller \
   --role-name "AmazonEKSLoadBalancerControllerRole" \
-  --attach-policy-arn=arn:aws:iam::<AWS ACCOUNT NUMBER>:policy/AWSLoadBalancerControllerIAMPolicy-updated \ # Use your account number
+  --attach-policy-arn=arn:aws:iam::<AWS ACCOUNT NUMBER>:policy/AWSLoadBalancerControllerIAMPolicy \ # Use your account number
   --approve
 
 kubectl annotate serviceaccount -n kube-system aws-load-balancer-controller \
@@ -46,18 +27,16 @@ helm repo update
 
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
     -n kube-system \
-    --set clusterName=eks-demo \
+    --set clusterName=my-cluster \
     --set serviceAccount.create=false \
     --set serviceAccount.name=aws-load-balancer-controller
-    
-    kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller/crds?ref=master"
+
+kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller/crds?ref=master"
 
 kubectl get deployment -n kube-system aws-load-balancer-controller
 
-https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html#application-load-balancer-sample-application
+# Add the following tag to at least one of the EKS subnets:
 
-https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html (Add tags to EKS subnets)
+# kubernetes.io/cluster/my-cluster : owned
 
-kubernetes.io/cluster/eks-demo : shared 
-
-kubernetes.io/role/elb : 1
+# Deploy your application
