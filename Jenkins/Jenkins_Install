@@ -12,8 +12,7 @@ sudo apt upgrade
 sudo apt update
 
 #Install Jenkins and its dependencies:
-
-sudo apt install jenkins
+sudo apt install jenkins -y
 sudo systemctl enable --now jenkins
 
 #Open port using ufw:
