@@ -1,4 +1,4 @@
-#Install Jave JDK:
+#Install Java JDK:
 sudo apt install openjdk-11-jdk -y
 
 #Add the repository key to the system:
