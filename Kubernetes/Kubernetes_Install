@@ -1,4 +1,4 @@
-#Kubernetes Install on Ubuntu 20
+#Kubernetes Install with containerd on Ubuntu 20
 #Perform the following on control plane nodes and worker nodes.
 #Create configuration file for containerd:
 
