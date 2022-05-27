@@ -22,34 +22,35 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-resource "aws_instance" "ec2-1" {
-  ami = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
-  subnet_id = data.aws_subnet.subnet1.id
-  tags = {
-    Name = "web1"
-  }
-}
 resource "aws_security_group" "asg" {
   vpc_id = data.aws_vpc.vpc1.id
   dynamic "ingress" {
     for_each = var.ingress_rules
-    iterator = "ingress_rule"
     content {
-      from_port = ingress_rule.value
-      to_port = ingress_rule.value
-      protocol = ingress_rule.value
-      cidr_blocks = ingress_rule.value
+      from_port = ingress_rule.value.port
+      to_port = ingress_rule.value.port
+      protocol = ingress_rule.value.protocol
+      cidr_blocks = ingress_rule.value.cidr_blocks
     }
   }
   dynamic "egress" {
     for_each = var.egress_rules
-    iterator = "egress_rule"
     content {
-      from_port = egress_rule.value
-      to_port = egress_rule.value
-      protocol = egress_rule.value
-      cidr_block = egress_rule.value
+      from_port = egress_rule.value.port
+      to_port = egress_rule.value.port
+      protocol = egress_rule.value.protocol
+      cidr_block = egress_rule.value.cidr_blocks
     }
   }
 }
+
+resource "aws_instance" "ec2-1" {
+  ami = data.aws_ami.ubuntu.id
+  instance_type = "t3.micro"
+  subnet_id = data.aws_subnet.subnet1.id
+  vpc_security_groups = [aws_security_group.asg.id]
+  tags = {
+    Name = "web1"
+  }
+}
+
