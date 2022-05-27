@@ -23,6 +23,7 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_security_group" "asg" {
+  name = "asg1"
   vpc_id = data.aws_vpc.vpc1.id
   dynamic "ingress" {
     for_each = var.ingress_rules
