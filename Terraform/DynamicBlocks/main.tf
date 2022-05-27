@@ -31,7 +31,7 @@ resource "aws_instance" "ec2-1" {
   }
 }
 resource "aws_security_group" "asg" {
-  vpc_id = data.aws_vpc.vpc.id
+  vpc_id = data.aws_vpc.vpc1.id
   dynamic "ingress" {
     for_each = var.ingress_rules
     iterator = "ingress_rule"
