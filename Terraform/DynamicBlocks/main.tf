@@ -45,12 +45,13 @@ resource "aws_security_group" "asg" {
   }
 }
 
-resource "aws_instance" "ec2-1" {
+resource "aws_instance" "ec2_instance" {
+  count = 3
   ami = data.aws_ami.ubuntu.id
   instance_type = "t3.micro"
   subnet_id = data.aws_subnet.subnet1.id
   vpc_security_group_ids = [aws_security_group.asg.id]
   tags = {
-    Name = "web1"
+    Name = join("", ["webserver", count.index + 1])
   }
 }
