@@ -40,7 +40,7 @@ resource "aws_security_group" "asg" {
       from_port = egress_rule.value.port
       to_port = egress_rule.value.port
       protocol = egress_rule.value.protocol
-      cidr_block = egress_rule.value.cidr_blocks
+      cidr_blocks = egress_rule.value.cidr_blocks
     }
   }
 }
@@ -49,7 +49,7 @@ resource "aws_instance" "ec2-1" {
   ami = data.aws_ami.ubuntu.id
   instance_type = "t3.micro"
   subnet_id = data.aws_subnet.subnet1.id
-  vpc_security_groups = [aws_security_group.asg.id]
+  vpc_security_group_ids = [aws_security_group.asg.id]
   tags = {
     Name = "web1"
   }
