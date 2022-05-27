@@ -1,9 +1,9 @@
 data "aws_vpc" "vpc1" {
-  id = "vpc-06e54bfd9bca2d16e"
+  id = "<vpc_id>" # Replace with your VPC ID.
 }
 
 data "aws_subnet" "subnet1" {
-  id = "subnet-0435fa15a40d53940"
+  id = "<subnet id>" # Replace with your subnet ID.
 }
 
 data "aws_ami" "ubuntu" {
