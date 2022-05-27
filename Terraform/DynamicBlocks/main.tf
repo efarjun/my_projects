@@ -28,19 +28,19 @@ resource "aws_security_group" "asg" {
   dynamic "ingress" {
     for_each = var.ingress_rules
     content {
-      from_port = ingress_rule.value.port
-      to_port = ingress_rule.value.port
-      protocol = ingress_rule.value.protocol
-      cidr_blocks = ingress_rule.value.cidr_blocks
+      from_port = ingress.value.port
+      to_port = ingress.value.port
+      protocol = ingress.value.protocol
+      cidr_blocks = ingress.value.cidr_blocks
     }
   }
   dynamic "egress" {
     for_each = var.egress_rules
     content {
-      from_port = egress_rule.value.port
-      to_port = egress_rule.value.port
-      protocol = egress_rule.value.protocol
-      cidr_blocks = egress_rule.value.cidr_blocks
+      from_port = egress.value.port
+      to_port = egress.value.port
+      protocol = egress.value.protocol
+      cidr_blocks = egress.value.cidr_blocks
     }
   }
 }
@@ -54,4 +54,3 @@ resource "aws_instance" "ec2-1" {
     Name = "web1"
   }
 }
-
