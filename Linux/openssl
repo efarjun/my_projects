@@ -1,0 +1,29 @@
+# Generate a 2048-bit RSA private key and CSR:
+openssl req -newkey rsa:2048 -keyout PRIVATEKEY.key -out MYCSR.csr
+
+# Create key:
+openssl genrsa -des3 -out domain.key 2048
+
+# Create csr:
+openssl req -key domain.key -new -out domain.csr
+
+# Create key and cert:
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365
+
+# Create a Self-Signed Root CA:
+openssl req -x509 -sha256 -days 1825 -newkey rsa:2048 -keyout rootCA.key -out rootCA.crt
+
+# Creates a self-signed certificate (domain.crt) from an existing private key:
+openssl req -key domain.key -new -x509 -days 365 -out domain.crt
+
+# Creates a self-signed certificate (domain.crt) from an existing private key (domain.key) and (domain.csr):
+openssl x509 -signkey domain.key -in domain.csr -req -days 365 -out domain.crt
+
+#View the cert:
+openssl x509 -text -noout -in domain.crt
+
+# Create CSR based on a key:
+openssl req -new -key anna.key -out anna.csr -subj "/CN=anna"
+
+# Create certificate from csr:
+openssl x509 -req -in anna.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out anna.crt -days 600
