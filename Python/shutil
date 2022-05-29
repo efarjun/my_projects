@@ -2,6 +2,6 @@ import shutil
 
 (total, used, free) = shutil.disk_usage('/')
 
-print('Total Space:', '{:.0f}'.format(total/1024**3) +'GB')
-print('Used Space:', '{:.0f}'.format(used/1024**3) + 'GB')
-print('Free Space:', '{:.0f}'.format(free/1024**3) + 'GB')
+print('Total Disk Space:', '{:.0f}'.format(total/1024**3) +'GB')
+print('Used Disk Space:', '{:.0f}'.format(used/1024**3) + 'GB')
+print('Free Disk Space:', '{:.0f}'.format(free/1024**3) + 'GB')
