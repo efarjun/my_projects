@@ -11,6 +11,9 @@ kubectl create namespace app
 # Create a pod:
 kubectl run test-pod --image nginx:1.21.1 --port 80 --serviceaccount api-access --restart=Never -n apps
 
+# Create a nodeport service:
+kubectl create svc nodeport node-port-svc --tcp=8080:80 
+
 # Create a service account:
 kubectlcreate serviceaccount test-service-account
 
