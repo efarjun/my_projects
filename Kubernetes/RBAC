@@ -1,0 +1,6 @@
+mkdir cert && cd cert
+openssl genrsa -out johndoe.key 2048
+openssl req -new -key johndoe.key -out johndoe.csr -subj "/CN=johndoe/O=cka-study-guide"
+openssl x509 -req -in johndoe.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out johndoe.crt -days 364
+kubectl config set-credentials johndoe --client-certificate=johndoe.crt --client-key=johndoe.key
+kubectl config set-context johndoe-context --cluster=kubernetes --user=johndoe
