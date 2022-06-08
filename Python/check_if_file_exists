@@ -1,0 +1,8 @@
+from os.path import exists
+
+fileName = input('Enter name of file: ')
+myFile = exists(fileName)
+if myFile is True:
+    print('The file exists.')
+else:
+    print('The file does not exist.')
