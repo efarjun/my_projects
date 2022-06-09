@@ -1,0 +1,327 @@
+Parameters:
+  ImageID:
+    Type: String
+    Default: ami-0022f774911c1d690
+    Description: Enter AMI ID.
+  InstanceName:
+    Type: String
+    Default: t2.micro
+    Description: Enter Instance Type.
+  KeyPair:
+    Type: String
+    Description: Enter Key Pair Name.
+
+Resources:
+  Dev1VPC:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: 10.1.0.0/16
+      EnableDnsHostnames: 'true'
+      EnableDnsSupport: 'true'
+      InstanceTenancy: 'default'
+      Tags: 
+        - Key: Dev1
+          Value: Frontend VPC
+
+  Dev2VPC:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: 172.31.0.0/16
+      EnableDnsHostnames: 'true'
+      EnableDnsSupport: 'true'
+      InstanceTenancy: 'default'
+      Tags: 
+        - Key: Dev2
+          Value: Backend End VPC
+
+  Dev3VPC:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: 192.168.0.0/16
+      EnableDnsHostnames: 'true'
+      EnableDnsSupport: 'true'
+      InstanceTenancy: 'default'
+      Tags: 
+        - Key: Dev3
+          Value: Database VPC
+
+  Dev1Subnet:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: 10.1.1.0/24
+      MapPublicIpOnLaunch: 'true'
+      Tags: 
+        - Key: Dev1
+          Value: Frontend Subnet
+      VpcId: !Ref Dev1VPC
+
+  Dev2Subnet:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: 172.31.1.0/24
+      MapPublicIpOnLaunch: 'false'
+      Tags: 
+        - Key: Dev2
+          Value: Backend Subnet
+      VpcId: !Ref Dev2VPC
+
+  Dev3Subnet:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: 192.168.1.0/24
+      MapPublicIpOnLaunch: 'false'
+      Tags: 
+        - Key: Dev3
+          Value: Database Subnet
+      VpcId: !Ref Dev3VPC
+
+  DevInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Dev
+        Value: IG1
+
+  DevInternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref DevInternetGateway
+      VpcId: !Ref Dev1VPC
+   
+  DevTransitGateway:
+    Type: AWS::EC2::TransitGateway
+    Properties: 
+      AutoAcceptSharedAttachments: 'enable'
+      DefaultRouteTableAssociation: 'enable'
+      DefaultRouteTablePropagation: 'enable'
+      Description: 'Dev VPC Gateway'
+      DnsSupport: 'enable'
+      Tags: 
+        - Key: Dev
+          Value: TGW1
+  
+  Dev1TransitGatewayAttachment:
+    Type: AWS::EC2::TransitGatewayAttachment
+    Properties: 
+      SubnetIds: 
+        - !Ref Dev1Subnet
+      Tags: 
+        - Key: Dev1
+          Value: TGWA
+      TransitGatewayId: !Ref DevTransitGateway
+      VpcId: !Ref Dev1VPC
+
+  Dev2TransitGatewayAttachment:
+    Type: AWS::EC2::TransitGatewayAttachment
+    Properties: 
+      SubnetIds: 
+        - !Ref Dev2Subnet
+      Tags: 
+        - Key: Dev2
+          Value: TGWA
+      TransitGatewayId: !Ref DevTransitGateway
+      VpcId: !Ref Dev2VPC
+
+  Dev3TransitGatewayAttachment:
+    Type: AWS::EC2::TransitGatewayAttachment
+    Properties: 
+      SubnetIds: 
+        - !Ref Dev3Subnet
+      Tags: 
+        - Key: Dev3
+          Value: TGWA
+      TransitGatewayId: !Ref DevTransitGateway
+      VpcId: !Ref Dev3VPC 
+
+  Dev1RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: Frontend RT
+      VpcId: !Ref Dev1VPC
+
+  Dev2RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: Backend RT
+      VpcId: !Ref Dev2VPC
+    
+  Dev3RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: Database RT
+      VpcId: !Ref Dev3VPC
+  
+  Dev1RTAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref Dev1RouteTable
+      SubnetId: !Ref Dev1Subnet
+
+  Dev2RTAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref Dev2RouteTable
+      SubnetId: !Ref Dev2Subnet
+  
+  Dev3RTAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref Dev3RouteTable
+      SubnetId: !Ref Dev3Subnet
+
+  Dev1Route1:
+    Type: AWS::EC2::Route
+    Properties:
+      GatewayId: !Ref DevInternetGateway
+      RouteTableId: !Ref Dev1RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      
+  Dev1Route2:
+    Type: AWS::EC2::Route
+    Properties:
+      TransitGatewayId: !Ref DevTransitGateway
+      RouteTableId: !Ref Dev1RouteTable
+      DestinationCidrBlock: 172.31.0.0/16
+    DependsOn: Dev1TransitGatewayAttachment
+
+  Dev1Route3:
+    Type: AWS::EC2::Route
+    Properties:
+      TransitGatewayId: !Ref DevTransitGateway
+      RouteTableId: !Ref Dev1RouteTable
+      DestinationCidrBlock: 192.168.0.0/16
+    DependsOn: Dev1TransitGatewayAttachment
+  
+  Dev2Route1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref Dev2RouteTable
+      TransitGatewayId: !Ref DevTransitGateway
+      DestinationCidrBlock: 10.1.0.0/16
+    DependsOn: Dev2TransitGatewayAttachment
+  
+  Dev2Route2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref Dev2RouteTable
+      TransitGatewayId: !Ref DevTransitGateway
+      DestinationCidrBlock: 192.168.0.0/16
+    DependsOn: Dev2TransitGatewayAttachment
+
+  Dev3Route1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref Dev3RouteTable
+      TransitGatewayId: !Ref DevTransitGateway
+      DestinationCidrBlock: 10.1.0.0/16
+    DependsOn: Dev3TransitGatewayAttachment
+
+  Dev3Route2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref Dev3RouteTable
+      TransitGatewayId: !Ref DevTransitGateway
+      DestinationCidrBlock: 172.31.0.0/16
+    DependsOn: Dev3TransitGatewayAttachment
+
+  Dev1EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: us-east-1a
+      ImageId: !Ref ImageID
+      InstanceType: !Ref InstanceName
+      KeyName: !Ref KeyPair
+      SubnetId: !Ref Dev1Subnet
+      SecurityGroupIds: 
+        - !Ref Dev1SecurityGroup
+      Tags: 
+        - Key: Name
+          Value: Frontend Server
+  
+  Dev2EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: us-east-1a
+      ImageId: !Ref ImageID
+      InstanceType: !Ref InstanceName
+      KeyName: !Ref KeyPair
+      SubnetId: !Ref Dev2Subnet
+      SecurityGroupIds: 
+        - !Ref Dev2SecurityGroup
+      Tags: 
+        - Key: Name
+          Value: Backend Server
+  
+  Dev3EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: us-east-1a
+      ImageId: !Ref ImageID
+      InstanceType: !Ref InstanceName
+      KeyName: !Ref KeyPair
+      SubnetId: !Ref Dev3Subnet
+      SecurityGroupIds: 
+        - !Ref Dev3SecurityGroup
+      Tags: 
+        - Key: Name
+          Value: Database Server
+
+  Dev1SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow SSH taffic"
+      SecurityGroupEgress: 
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: Frontend SG
+      VpcId: !Ref Dev1VPC
+
+  Dev2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow SSH taffic"
+      SecurityGroupEgress: 
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: Backend SG
+      VpcId: !Ref Dev2VPC
+  
+  Dev3SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow SSH taffic"
+      SecurityGroupEgress: 
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: Database SG
+      VpcId: !Ref Dev3VPC
