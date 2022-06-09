@@ -1,3 +1,5 @@
+# Template that creates 3 VPCs, Transit Gateways, and EC2 instances. Each EC2 instance should allow traffic to each other on port 22 using the Transit Gateway.
+
 Parameters:
   ImageID:
     Type: String
