@@ -1,0 +1,9 @@
+import fileinput
+
+fileName = 'C:\\file.txt'
+textToSearch = 'text'
+replacementText = 'new text'
+
+with fileinput.FileInput(fileName, inplace=True) as file:
+    for line in file:
+        print(line.replace(textToSearch, replacementText), end='')
