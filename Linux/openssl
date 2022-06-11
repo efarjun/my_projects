@@ -27,3 +27,6 @@ openssl req -new -key anna.key -out anna.csr -subj "/CN=anna"
 
 # Create certificate from csr:
 openssl x509 -req -in anna.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out anna.crt -days 600
+
+# Calculate fingerprint of key
+openssl rsa -in domain.pem -pubout -outform DER | openssl md5 -c
