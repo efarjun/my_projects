@@ -11,6 +11,7 @@ def lambda_handler(event, context):
         CURRENT_ACCOUNT_ID
         ]
     )
-
+    
+    # Retreive all snapshots in region
     for snapshot in snapshots:
         print(f'Snapshot {snapshot.id} created for volume {snapshot.volume_id}')
