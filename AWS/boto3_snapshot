@@ -1,0 +1,16 @@
+import boto3
+
+AWS_REGION = "us-east-1"
+EC2_RESOURCE = boto3.resource('ec2', region_name=AWS_REGION)
+STS_CLIENT = boto3.client('sts')
+CURRENT_ACCOUNT_ID = STS_CLIENT.get_caller_identity()['Account']
+
+def lambda_handler(event, context):
+    snapshots = EC2_RESOURCE.snapshots.filter(
+    OwnerIds=[
+        CURRENT_ACCOUNT_ID
+        ]
+    )
+
+    for snapshot in snapshots:
+        print(f'Snapshot {snapshot.id} created for volume {snapshot.volume_id}')
