@@ -1,0 +1,158 @@
+#!/usr/bin/python3
+
+import boto3
+from botocore.exceptions import ClientError
+import time
+
+awsRegion = "us-east-1"
+ec2Client = boto3.client('ec2', region_name=awsRegion)
+stsClient = boto3.client('sts')
+currentAccountId = stsClient.get_caller_identity()['Account']
+InstanceId = input('Enter EC2 Instance ID: ')
+unencryptedVolume = input('Enter EBS volume ID: ')
+az = input('Enter Availability Zone: ')
+volumeType = input('Enter volume Type: ')
+deviceName = input('Enter device name of volume: ')
+
+print('Job started ..')
+
+
+snapshot = ec2Client.create_snapshot(VolumeId=unencryptedVolume)
+
+statusCode = snapshot['ResponseMetadata']['HTTPStatusCode']
+snapshotId = snapshot['SnapshotId']
+
+snapshotWaiter = ec2Client.get_waiter('snapshot_completed')
+
+mySnapshotWaiter = snapshotWaiter.wait(
+    SnapshotIds=[
+        snapshotId
+    ],
+)
+
+while mySnapshotWaiter == True:
+    time.sleep(10)
+
+print('Snapshot Created ..')
+
+snapshotCopy = ec2Client.copy_snapshot(
+    Description='Snapshot copied from' + snapshotId,
+    DestinationRegion='us-east-1',
+    Encrypted=True,
+    SourceRegion='us-east-1',
+    SourceSnapshotId=snapshotId
+    )
+
+snapshotCopyId = snapshotCopy['SnapshotId']
+
+mySnapshotCopyWaiter = snapshotWaiter.wait(
+    SnapshotIds=[
+        snapshotCopyId
+    ],
+)
+
+while mySnapshotCopyWaiter == True:
+    time.sleep(10)
+
+print('Encrypted Snapshot Created ..')
+
+encryptedVolume = ec2Client.create_volume(
+    Encrypted=True,
+    AvailabilityZone=az,
+    SnapshotId=snapshotCopyId,
+    VolumeType=volumeType,
+    TagSpecifications=[
+        {
+            'ResourceType': 'volume',
+            'Tags': [
+                {
+                    'Key': 'Name',
+                    'Value': 'New Volume'
+                },
+            ]
+        },
+    ]
+)
+
+volumeDescribe = ec2Client.describe_volumes(
+        VolumeIds=[
+            unencryptedVolume
+            ])
+# InstanceId = volumeDescribe['Volumes'][0]['Attachments'][0]['InstanceId']
+
+ec2Client.stop_instances(
+    InstanceIds=[
+        InstanceId
+        ],
+)
+
+instanceWaiter = ec2Client.get_waiter('instance_stopped')
+
+myInstanceWaiter = instanceWaiter.wait(
+    InstanceIds=[
+        InstanceId
+    ],
+)
+
+while instanceWaiter == True:
+    time.sleep(10)
+
+print('Instance stopped ..')
+
+detachedVolume = ec2Client.detach_volume(
+    InstanceId=InstanceId,
+    VolumeId=unencryptedVolume,
+)
+
+volumeWaiter = ec2Client.get_waiter('volume_available')
+
+myVolumeWaiter = volumeWaiter.wait(
+    VolumeIds=[
+        unencryptedVolume
+    ],
+)
+
+while volumeWaiter == True:
+    time.sleep(10)
+
+print('Unencrypted volume detached ..')
+
+attachedVolume = ec2Client.attach_volume(
+    Device=deviceName,
+    InstanceId=InstanceId,
+    VolumeId=encryptedVolume,
+)
+
+volumeWaiter2 = ec2Client.get_waiter('volume_in_use')
+
+myVolumeWaiter2 = volumeWaiter2.wait(
+    VolumeIds=[
+        encryptedVolume
+    ],
+)
+
+while volumeWaiter2 == True:
+    time.sleep(10)
+
+print('Encrypted volume attached ..')
+
+ec2Client.start_instances(
+    InstanceIds=[
+        InstanceId
+        ],
+)
+
+instanceWaiter2 = ec2Client.get_waiter('instance_started')
+
+myInstanceWaiter2 = instanceWaiter2.wait(
+    InstanceIds=[
+        InstanceId
+    ],
+)
+
+while instanceWaiter2 == True:
+    time.sleep(10)
+
+print('Instance started ..')
+
+print('Job completed.')
