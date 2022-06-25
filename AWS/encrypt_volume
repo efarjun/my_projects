@@ -24,7 +24,7 @@ print('Job started ..')
 
 snapshot = ec2Client.create_snapshot(VolumeId=unencryptedVolumeId)
 
-statusCode = snapshot['ResponseMetadata']['HTTPStatusCode']
+# statusCode = snapshot['ResponseMetadata']['HTTPStatusCode']
 snapshotId = snapshot['SnapshotId']
 
 snapshotWaiter = ec2Client.get_waiter('snapshot_completed')
