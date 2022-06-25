@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+# This script creates a snapshot of the unencrypted EBS volume, copies the snapshot to an encrypted snapshot, creates an encrypted EBS volume,
+# stops the EC2 instance, detaches the unencrypted volume from the EC2 instance, attaches the encrypted volume to the EC2 instance, and stsrts the instance.
+
 import boto3
 from botocore.exceptions import ClientError
 import time
@@ -9,15 +12,15 @@ ec2Client = boto3.client('ec2', region_name=awsRegion)
 stsClient = boto3.client('sts')
 currentAccountId = stsClient.get_caller_identity()['Account']
 InstanceId = input('Enter EC2 Instance ID: ')
-unencryptedVolume = input('Enter EBS volume ID: ')
+unencryptedVolumeId = input('Enter EBS volume ID: ')
 az = input('Enter Availability Zone: ')
-volumeType = input('Enter volume Type: ')
-deviceName = input('Enter device name of volume: ')
+volumeType = input('Enter volume Type(ex. gp2, gp3): ')
+deviceName = input('Enter device name of volume(ex. /dev/xvda): ')
 
 print('Job started ..')
 
 
-snapshot = ec2Client.create_snapshot(VolumeId=unencryptedVolume)
+snapshot = ec2Client.create_snapshot(VolumeId=unencryptedVolumeId)
 
 statusCode = snapshot['ResponseMetadata']['HTTPStatusCode']
 snapshotId = snapshot['SnapshotId']
@@ -73,10 +76,11 @@ encryptedVolume = ec2Client.create_volume(
         },
     ]
 )
+encryptedVolumeId = encryptedVolume['VolumeId']
 
 volumeDescribe = ec2Client.describe_volumes(
         VolumeIds=[
-            unencryptedVolume
+            unencryptedVolumeId
             ])
 # InstanceId = volumeDescribe['Volumes'][0]['Attachments'][0]['InstanceId']
 
@@ -101,14 +105,14 @@ print('Instance stopped ..')
 
 detachedVolume = ec2Client.detach_volume(
     InstanceId=InstanceId,
-    VolumeId=unencryptedVolume,
+    VolumeId=unencryptedVolumeId,
 )
 
 volumeWaiter = ec2Client.get_waiter('volume_available')
 
 myVolumeWaiter = volumeWaiter.wait(
     VolumeIds=[
-        unencryptedVolume
+        unencryptedVolumeId
     ],
 )
 
@@ -120,14 +124,14 @@ print('Unencrypted volume detached ..')
 attachedVolume = ec2Client.attach_volume(
     Device=deviceName,
     InstanceId=InstanceId,
-    VolumeId=encryptedVolume,
+    VolumeId=encryptedVolumeId,
 )
 
 volumeWaiter2 = ec2Client.get_waiter('volume_in_use')
 
 myVolumeWaiter2 = volumeWaiter2.wait(
     VolumeIds=[
-        encryptedVolume
+        encryptedVolumeId
     ],
 )
 
@@ -142,7 +146,7 @@ ec2Client.start_instances(
         ],
 )
 
-instanceWaiter2 = ec2Client.get_waiter('instance_started')
+instanceWaiter2 = ec2Client.get_waiter('instance_running')
 
 myInstanceWaiter2 = instanceWaiter2.wait(
     InstanceIds=[
