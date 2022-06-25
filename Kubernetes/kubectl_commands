@@ -1,0 +1,3 @@
+# Check which pods are running on a specific node:
+
+kubectl get pods -n metameetings-production -o wide --field-selector spec.nodeName=<name of node>
