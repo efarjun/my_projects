@@ -3,6 +3,8 @@
 # This script creates a snapshot of the unencrypted EBS volume, copies the snapshot to an encrypted snapshot, creates an encrypted EBS volume,
 # stops the EC2 instance, detaches the unencrypted volume from the EC2 instance, attaches the encrypted volume to the EC2 instance, and stsrts the instance.
 
+# It does not run any verifications nor reverses resource changes if mistakes are made. Use at your own risk and manually fix any issues.
+
 import boto3
 from botocore.exceptions import ClientError
 import time
