@@ -14,3 +14,4 @@ volumes =[]
 
 for volume in volumes:
     response = ec2Client.modify_volume(VolumeId=volume,VolumeType='gp3')
+    print(f'{volume} has been changes to gp3.')
