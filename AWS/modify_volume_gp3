@@ -1,0 +1,16 @@
+#!/usr/bin/python3
+
+# This script takes a list of EBS volume IDs and changes the volume type to gp3.
+
+import boto3
+import time
+
+awsRegion = "us-east-1"
+ec2Client = boto3.client('ec2', region_name=awsRegion)
+stsClient = boto3.client('sts')
+currentAccountId = stsClient.get_caller_identity()['Account']
+
+volumes =[]
+
+for volume in volumes:
+    response = ec2Client.modify_volume(VolumeId=volume,VolumeType='gp3')
