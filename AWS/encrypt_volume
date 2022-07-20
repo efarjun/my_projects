@@ -5,11 +5,13 @@
 
 # It does not run any verifications nor reverses resource changes if mistakes are made. Use at your own risk and manually fix any issues.
 
-import boto3
-from botocore.exceptions import ClientError
-import time
 
-awsRegion = "us-east-1"
+import boto3
+import botocore
+import time
+import os
+
+awsRegion = input('Enter AWS Region: ')
 ec2Client = boto3.client('ec2', region_name=awsRegion)
 stsClient = boto3.client('sts')
 currentAccountId = stsClient.get_caller_identity()['Account']
@@ -21,45 +23,53 @@ deviceName = input('Enter device name of volume(ex. /dev/xvda): ')
 
 print('Job started ..')
 
-
 snapshot = ec2Client.create_snapshot(VolumeId=unencryptedVolumeId)
 
-# statusCode = snapshot['ResponseMetadata']['HTTPStatusCode']
 snapshotId = snapshot['SnapshotId']
 
 snapshotWaiter = ec2Client.get_waiter('snapshot_completed')
 
-mySnapshotWaiter = snapshotWaiter.wait(
-    SnapshotIds=[
-        snapshotId
-    ],
-)
+try:
+    snapshotWaiter.wait(
+        SnapshotIds=[
+            snapshotId
+        ],
+        WaiterConfig={"Delay": 240}
+    )
 
-while mySnapshotWaiter == True:
-    time.sleep(10)
+except botocore.exceptions.WaiterError as e:
+    if "Max attempts exceeded" in e.message:
+        print('Snapshot did not complete in 600 seconds.')
+    else:
+        print(e.message)
 
-print('Snapshot Created ..')
+print(f'Initial snapshot {snapshotId} Created ..')
 
 snapshotCopy = ec2Client.copy_snapshot(
     Description='Snapshot copied from' + snapshotId,
-    DestinationRegion='us-east-1',
+    DestinationRegion=awsRegion,
     Encrypted=True,
-    SourceRegion='us-east-1',
+    SourceRegion=awsRegion,
     SourceSnapshotId=snapshotId
     )
 
 snapshotCopyId = snapshotCopy['SnapshotId']
 
-mySnapshotCopyWaiter = snapshotWaiter.wait(
-    SnapshotIds=[
-        snapshotCopyId
-    ],
-)
+try:
+    snapshotWaiter.wait(
+        SnapshotIds=[
+            snapshotCopyId
+        ],
+       WaiterConfig={"Delay": 240}
+    )
 
-while mySnapshotCopyWaiter == True:
-    time.sleep(10)
+except botocore.exceptions.WaiterError as e:
+    if "Max attempts exceeded" in e.message:
+        print('Snapshot did not complete in 600 seconds.')
+    else:
+        print(e.message)
 
-print('Encrypted Snapshot Created ..')
+print(f'Encrypted Snapshot {snapshotCopyId} Created ..')
 
 encryptedVolume = ec2Client.create_volume(
     Encrypted=True,
@@ -72,7 +82,7 @@ encryptedVolume = ec2Client.create_volume(
             'Tags': [
                 {
                     'Key': 'Name',
-                    'Value': 'New Volume'
+                    'Value': 'Encrypted Volume'
                 },
             ]
         },
@@ -80,11 +90,25 @@ encryptedVolume = ec2Client.create_volume(
 )
 encryptedVolumeId = encryptedVolume['VolumeId']
 
+encryptedVolumeWaiter = ec2Client.get_waiter('volume_available')
+
+try:
+    encryptedVolumeWaiter.wait(
+        VolumeIds=[
+            encryptedVolumeId
+        ],
+    )
+
+except botocore.exceptions.WaiterError as e:
+    if "Max attempts exceeded" in e.message:
+        print('Encrypted volume did not complete in 600 seconds.')
+    else:
+        print(e.message)
+
 volumeDescribe = ec2Client.describe_volumes(
         VolumeIds=[
             unencryptedVolumeId
             ])
-# InstanceId = volumeDescribe['Volumes'][0]['Attachments'][0]['InstanceId']
 
 ec2Client.stop_instances(
     InstanceIds=[
@@ -94,16 +118,19 @@ ec2Client.stop_instances(
 
 instanceWaiter = ec2Client.get_waiter('instance_stopped')
 
-myInstanceWaiter = instanceWaiter.wait(
-    InstanceIds=[
-        InstanceId
-    ],
-)
+try:
+    instanceWaiter.wait(
+        InstanceIds=[
+            InstanceId
+        ],
+    )
 
-while instanceWaiter == True:
-    time.sleep(10)
-
-print('Instance stopped ..')
+except botocore.exceptions.WaiterError as e:
+    if "Max attempts exceeded" in e.message:
+        print('Instance did not stop in 600 seconds.')
+    else:
+        print(e.message)
+print(f'Instance {InstanceId} stopped ..')
 
 detachedVolume = ec2Client.detach_volume(
     InstanceId=InstanceId,
@@ -112,16 +139,20 @@ detachedVolume = ec2Client.detach_volume(
 
 volumeWaiter = ec2Client.get_waiter('volume_available')
 
-myVolumeWaiter = volumeWaiter.wait(
-    VolumeIds=[
-        unencryptedVolumeId
-    ],
-)
+try:
+    volumeWaiter.wait(
+        VolumeIds=[
+            unencryptedVolumeId
+        ],
+    )
 
-while volumeWaiter == True:
-    time.sleep(10)
+except botocore.exceptions.WaiterError as e:
+    if "Max attempts exceeded" in e.message:
+        print('Encrypted volume did not complete in 600 seconds.')
+    else:
+        print(e.message)
 
-print('Unencrypted volume detached ..')
+print(f'Unencrypted volume {unencryptedVolumeId} detached ..')
 
 attachedVolume = ec2Client.attach_volume(
     Device=deviceName,
@@ -131,16 +162,20 @@ attachedVolume = ec2Client.attach_volume(
 
 volumeWaiter2 = ec2Client.get_waiter('volume_in_use')
 
-myVolumeWaiter2 = volumeWaiter2.wait(
-    VolumeIds=[
-        encryptedVolumeId
-    ],
-)
+try:
+    volumeWaiter2.wait(
+        VolumeIds=[
+            encryptedVolumeId
+        ],
+    )
 
-while volumeWaiter2 == True:
-    time.sleep(10)
+except botocore.exceptions.WaiterError as e:
+    if "Max attempts exceeded" in e.message:
+        print('Volume did not attach in 600 seconds.')
+    else:
+        print(e.message)
 
-print('Encrypted volume attached ..')
+print(f'Encrypted volume {encryptedVolumeId} attached ..')
 
 ec2Client.start_instances(
     InstanceIds=[
@@ -150,15 +185,19 @@ ec2Client.start_instances(
 
 instanceWaiter2 = ec2Client.get_waiter('instance_running')
 
-myInstanceWaiter2 = instanceWaiter2.wait(
-    InstanceIds=[
-        InstanceId
-    ],
-)
+try:
+    instanceWaiter2.wait(
+        InstanceIds=[
+            InstanceId
+        ],
+    )
 
-while instanceWaiter2 == True:
-    time.sleep(10)
+except botocore.exceptions.WaiterError as e:
+    if "Max attempts exceeded" in e.message:
+        print('Instance did not stop in 600 seconds.')
+    else:
+        print(e.message)
 
-print('Instance started ..')
+print(f'Instance {InstanceId} started ..')
 
 print('Job completed.')
