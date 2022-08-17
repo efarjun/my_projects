@@ -1,0 +1,37 @@
+# The following script is an example of looping through a list of Site-to-Site VPN IDs and creating a CloudWatch Alarm that is triggered when both tunnels are in a down state.
+# It will also send an SNS notification when the alarm state changes between 'OK' and 'In alarm'.
+
+#!/usr/bin/python3
+
+import boto3
+
+vpn_ids = [""]
+
+cloudwatch = boto3.client('cloudwatch')
+
+for vpn_id in vpn_ids:
+    cloudwatch.put_metric_alarm(
+    AlarmName= vpn_id + '-TunnelState',
+    ActionsEnabled=True,
+    OKActions=[
+        '<arn>', # sns topic
+    ],
+    AlarmActions=[
+        '<arn>', # sns topic
+    ],
+    ComparisonOperator='LessThanOrEqualToThreshold',
+    EvaluationPeriods=1,
+    MetricName='TunnelState',
+    Namespace='AWS/VPN',
+    Period=60,
+    Statistic='Maximum',
+    Threshold=0,
+    AlarmDescription='Triggers when the state of both VPN tunnels are down',
+    TreatMissingData='notBreaching',
+    Dimensions=[
+        {
+            'Name': 'VpnId',
+            'Value': vpn_id
+        },
+    ],
+)
