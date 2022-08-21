@@ -18,7 +18,7 @@ ssmClient = boto3.client('ssm')
 stsClient = boto3.client('sts')
 currentAccountId = stsClient.get_caller_identity()['Account']
 
-print('Please confirm the EC2 instance is in a running state before continuing.')
+#The EC2 instance must be in a running state.
 
 unencryptedVolumeId = input('Please enter volume ID: ')
 
