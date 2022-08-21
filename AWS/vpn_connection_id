@@ -1,9 +1,10 @@
-# Retrieves all available site to site VPN connection IDs:
+# Creates a list of all available site to site VPN connection IDs:
 
 #!/usr/bin/python3
 
 import boto3
 client= boto3.client('ec2')
+vpnList = []
 vpns = client.describe_vpn_connections(
     Filters=[
         {
@@ -16,4 +17,5 @@ vpns = client.describe_vpn_connections(
 )
 
 for vpnId in vpns['VpnConnections']:
-    print(vpnId['VpnConnectionId'])
+    vpnList.append(vpnId['VpnConnectionId'])
+print(vpnList)
