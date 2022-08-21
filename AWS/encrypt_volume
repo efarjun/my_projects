@@ -6,198 +6,255 @@
 # It does not run any verifications nor reverses resource changes if mistakes are made. Use at your own risk and manually fix any issues.
 
 
+#!/usr/bin/python3
+
 import boto3
-import botocore
 import time
 import os
 
-awsRegion = input('Enter AWS Region: ')
+awsRegion = os.environ['AWS_DEFAULT_REGION']
 ec2Client = boto3.client('ec2', region_name=awsRegion)
+ssmClient = boto3.client('ssm')
 stsClient = boto3.client('sts')
 currentAccountId = stsClient.get_caller_identity()['Account']
-InstanceId = input('Enter EC2 Instance ID: ')
-unencryptedVolumeId = input('Enter EBS volume ID: ')
-az = input('Enter Availability Zone: ')
-volumeType = input('Enter volume Type(ex. gp2, gp3): ')
-deviceName = input('Enter device name of volume(ex. /dev/xvda): ')
 
-print('Job started ..')
+print('Please confirm the EC2 instance is in a running state before continuing.')
 
-snapshot = ec2Client.create_snapshot(VolumeId=unencryptedVolumeId)
+unencryptedVolumeId = input('Please enter volume ID: ')
 
-snapshotId = snapshot['SnapshotId']
-
-snapshotWaiter = ec2Client.get_waiter('snapshot_completed')
-
-try:
-    snapshotWaiter.wait(
-        SnapshotIds=[
-            snapshotId
-        ],
-        WaiterConfig={"Delay": 240}
-    )
-
-except botocore.exceptions.WaiterError as e:
-    if "Max attempts exceeded" in e.message:
-        print('Snapshot did not complete in 600 seconds.')
-    else:
-        print(e.message)
-
-print(f'Initial snapshot {snapshotId} Created ..')
-
-snapshotCopy = ec2Client.copy_snapshot(
-    Description='Snapshot copied from' + snapshotId,
-    DestinationRegion=awsRegion,
-    Encrypted=True,
-    SourceRegion=awsRegion,
-    SourceSnapshotId=snapshotId
-    )
-
-snapshotCopyId = snapshotCopy['SnapshotId']
-
-try:
-    snapshotWaiter.wait(
-        SnapshotIds=[
-            snapshotCopyId
-        ],
-       WaiterConfig={"Delay": 240}
-    )
-
-except botocore.exceptions.WaiterError as e:
-    if "Max attempts exceeded" in e.message:
-        print('Snapshot did not complete in 600 seconds.')
-    else:
-        print(e.message)
-
-print(f'Encrypted Snapshot {snapshotCopyId} Created ..')
-
-encryptedVolume = ec2Client.create_volume(
-    Encrypted=True,
-    AvailabilityZone=az,
-    SnapshotId=snapshotCopyId,
-    VolumeType=volumeType,
-    TagSpecifications=[
-        {
-            'ResourceType': 'volume',
-            'Tags': [
-                {
-                    'Key': 'Name',
-                    'Value': 'Encrypted Volume'
+volumeDescription = ec2Client.describe_volumes(
+        Filters=[
+            {
+                'Name': 'status',
+                'Values': [
+                    'in-use',
+                    'available'
+                    ]
                 },
-            ]
-        },
-    ]
-)
-encryptedVolumeId = encryptedVolume['VolumeId']
+            ],
+       VolumeIds=[
+                   unencryptedVolumeId,
+                ],
+       )
 
-encryptedVolumeWaiter = ec2Client.get_waiter('volume_available')
+for info in volumeDescription['Volumes']:
+    for instanceId in info['Attachments']:
+        InstanceId = instanceId['InstanceId']
+        print(f'EC2 Instance ID: {InstanceId}')
 
-try:
-    encryptedVolumeWaiter.wait(
-        VolumeIds=[
-            encryptedVolumeId
-        ],
+instanceDescription = ec2Client.describe_instances(
+        Filters=[
+            {
+                'Name': 'instance-state-name',
+                'Values': [
+                    'running'
+                    ]
+                },
+            ],
+       InstanceIds=[
+                   InstanceId,
+                ],
+       )
+
+for instance in instanceDescription['Reservations']:
+    for state in instance['Instances']:
+        instanceState = state['State']['Name']
+
+if instanceState == 'running':
+
+    for info in volumeDescription['Volumes']:
+        az = info['AvailabilityZone']
+        print(f'Availability Zone: {az}')
+
+    for info in volumeDescription['Volumes']:
+        for deviceName in info['Attachments']:
+            deviceName = deviceName['Device']
+            print(f'Device Name: {deviceName}')
+
+    for info in volumeDescription['Volumes']:
+        volumeType = info['VolumeType']
+        print(f'Volume Type: {volumeType}')
+
+    print('Job started ..')
+
+    snapshot = ec2Client.create_snapshot(VolumeId=unencryptedVolumeId)
+
+    snapshotId = snapshot['SnapshotId']
+
+    snapshotWaiter = ec2Client.get_waiter('snapshot_completed')
+
+    try:
+        snapshotWaiter.wait(
+            SnapshotIds=[
+                snapshotId
+            ],
+            WaiterConfig={"Delay": 240}
+        )
+
+    except botocore.exceptions.WaiterError as e:
+        if "Max attempts exceeded" in e.message:
+            print('Snapshot did not complete in 600 seconds.')
+        else:
+            print(e.message)
+
+    print(f'Initial snapshot {snapshotId} Created ..')
+
+    snapshotCopy = ec2Client.copy_snapshot(
+        Description='Snapshot copied from' + snapshotId,
+        DestinationRegion=awsRegion,
+        Encrypted=True,
+        SourceRegion=awsRegion,
+        SourceSnapshotId=snapshotId
+        )
+
+    snapshotCopyId = snapshotCopy['SnapshotId']
+
+    try:
+        snapshotWaiter.wait(
+            SnapshotIds=[
+                snapshotCopyId
+            ],
+        WaiterConfig={"Delay": 240}
+        )
+
+    except botocore.exceptions.WaiterError as e:
+        if "Max attempts exceeded" in e.message:
+            print('Snapshot did not complete in 600 seconds.')
+        else:
+            print(e.message)
+
+    print(f'Encrypted Snapshot {snapshotCopyId} Created ..')
+
+    encryptedVolume = ec2Client.create_volume(
+        Encrypted=True,
+        AvailabilityZone=az,
+        SnapshotId=snapshotCopyId,
+        VolumeType=volumeType,
+        TagSpecifications=[
+            {
+                'ResourceType': 'volume',
+                'Tags': [
+                    {
+                        'Key': 'Name',
+                        'Value': 'Encrypted Volume'
+                    },
+                ]
+            },
+        ]
     )
+    encryptedVolumeId = encryptedVolume['VolumeId']
 
-except botocore.exceptions.WaiterError as e:
-    if "Max attempts exceeded" in e.message:
-        print('Encrypted volume did not complete in 600 seconds.')
-    else:
-        print(e.message)
+    encryptedVolumeWaiter = ec2Client.get_waiter('volume_available')
 
-volumeDescribe = ec2Client.describe_volumes(
-        VolumeIds=[
-            unencryptedVolumeId
-            ])
+    try:
+        encryptedVolumeWaiter.wait(
+            VolumeIds=[
+                encryptedVolumeId
+            ],
+        )
 
-ec2Client.stop_instances(
-    InstanceIds=[
-        InstanceId
-        ],
-)
+    except botocore.exceptions.WaiterError as e:
+        if "Max attempts exceeded" in e.message:
+            print('Encrypted volume did not complete in 600 seconds.')
+        else:
+            print(e.message)
 
-instanceWaiter = ec2Client.get_waiter('instance_stopped')
+    volumeDescribe = ec2Client.describe_volumes(
+            VolumeIds=[
+                unencryptedVolumeId
+                ])
 
-try:
-    instanceWaiter.wait(
+    ec2Client.stop_instances(
         InstanceIds=[
             InstanceId
-        ],
+            ],
     )
 
-except botocore.exceptions.WaiterError as e:
-    if "Max attempts exceeded" in e.message:
-        print('Instance did not stop in 600 seconds.')
-    else:
-        print(e.message)
-print(f'Instance {InstanceId} stopped ..')
+    instanceWaiter = ec2Client.get_waiter('instance_stopped')
 
-detachedVolume = ec2Client.detach_volume(
-    InstanceId=InstanceId,
-    VolumeId=unencryptedVolumeId,
-)
+    try:
+        instanceWaiter.wait(
+            InstanceIds=[
+                InstanceId
+            ],
+        )
 
-volumeWaiter = ec2Client.get_waiter('volume_available')
+    except botocore.exceptions.WaiterError as e:
+        if "Max attempts exceeded" in e.message:
+            print('Instance did not stop in 600 seconds.')
+        else:
+            print(e.message)
+    print(f'Instance {InstanceId} stopped ..')
 
-try:
-    volumeWaiter.wait(
-        VolumeIds=[
-            unencryptedVolumeId
-        ],
+    detachedVolume = ec2Client.detach_volume(
+        InstanceId=InstanceId,
+        VolumeId=unencryptedVolumeId,
     )
 
-except botocore.exceptions.WaiterError as e:
-    if "Max attempts exceeded" in e.message:
-        print('Encrypted volume did not complete in 600 seconds.')
-    else:
-        print(e.message)
+    volumeWaiter = ec2Client.get_waiter('volume_available')
 
-print(f'Unencrypted volume {unencryptedVolumeId} detached ..')
+    try:
+        volumeWaiter.wait(
+            VolumeIds=[
+                unencryptedVolumeId
+            ],
+        )
 
-attachedVolume = ec2Client.attach_volume(
-    Device=deviceName,
-    InstanceId=InstanceId,
-    VolumeId=encryptedVolumeId,
-)
+    except botocore.exceptions.WaiterError as e:
+        if "Max attempts exceeded" in e.message:
+            print('Encrypted volume did not complete in 600 seconds.')
+        else:
+            print(e.message)
 
-volumeWaiter2 = ec2Client.get_waiter('volume_in_use')
+    print(f'Unencrypted volume {unencryptedVolumeId} detached ..')
 
-try:
-    volumeWaiter2.wait(
-        VolumeIds=[
-            encryptedVolumeId
-        ],
+    attachedVolume = ec2Client.attach_volume(
+        Device=deviceName,
+        InstanceId=InstanceId,
+        VolumeId=encryptedVolumeId,
     )
 
-except botocore.exceptions.WaiterError as e:
-    if "Max attempts exceeded" in e.message:
-        print('Volume did not attach in 600 seconds.')
-    else:
-        print(e.message)
+    volumeWaiter2 = ec2Client.get_waiter('volume_in_use')
 
-print(f'Encrypted volume {encryptedVolumeId} attached ..')
+    try:
+        volumeWaiter2.wait(
+            VolumeIds=[
+                encryptedVolumeId
+            ],
+        )
 
-ec2Client.start_instances(
-    InstanceIds=[
-        InstanceId
-        ],
-)
+    except botocore.exceptions.WaiterError as e:
+        if "Max attempts exceeded" in e.message:
+            print('Volume did not attach in 600 seconds.')
+        else:
+            print(e.message)
 
-instanceWaiter2 = ec2Client.get_waiter('instance_running')
+    print(f'Encrypted volume {encryptedVolumeId} attached ..')
 
-try:
-    instanceWaiter2.wait(
+    ec2Client.start_instances(
         InstanceIds=[
             InstanceId
-        ],
+            ],
     )
 
-except botocore.exceptions.WaiterError as e:
-    if "Max attempts exceeded" in e.message:
-        print('Instance did not stop in 600 seconds.')
-    else:
-        print(e.message)
+    instanceWaiter2 = ec2Client.get_waiter('instance_running')
 
-print(f'Instance {InstanceId} started ..')
+    try:
+        instanceWaiter2.wait(
+            InstanceIds=[
+                InstanceId
+            ],
+        )
 
-print('Job completed.')
+    except botocore.exceptions.WaiterError as e:
+        if "Max attempts exceeded" in e.message:
+            print('Instance did not stop in 600 seconds.')
+        else:
+            print(e.message)
+
+    print(f'Instance {InstanceId} started ..')
+
+    print('Job completed.')
+
+else:
+    print('EC2 instance must be in a running state. Please ensure the instance is in a running state and try again.')
