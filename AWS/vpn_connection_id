@@ -4,7 +4,7 @@
 
 import boto3
 client= boto3.client('ec2')
-response = client.describe_vpn_connections(
+vpns = client.describe_vpn_connections(
     Filters=[
         {
             'Name': 'state',
@@ -15,5 +15,5 @@ response = client.describe_vpn_connections(
     ],
 )
 
-for vpnId in response['VpnConnections']:
+for vpnId in vpns['VpnConnections']:
     print(vpnId['VpnConnectionId'])
