@@ -1,0 +1,29 @@
+# This script pulls all Lambda functions and updates any of the functions with a node js runtime version of 10 or 12 to 14.
+
+#!/usr/bin/python3
+
+import boto3
+
+lambdaClient = boto3.client('lambda')
+
+functionList = []
+functionRuntimeNeedsChanged = []
+
+listFunctions = lambdaClient.list_functions()
+
+for function in listFunctions['Functions']:
+    functionList.append(function['FunctionName'])
+
+for functionName in functionList:
+    functionInfo = lambdaClient.get_function_configuration(
+            FunctionName=functionName
+            )
+    if functionInfo['Runtime'] == 'nodejs10.x' or functionInfo['Runtime'] == 'nodejs12.x':
+        functionRuntimeNeedsChanged.append(functionName)
+
+for function in functionRuntimeNeedsChanged:
+    updateFunction = lambdaClient.update_function_configuration(
+            FunctionName=function,
+            Runtime='nodejs14.x'
+            )
+    print(f'Function: {function} has been updated to {functionInfo["Runtime"]}')
