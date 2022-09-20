@@ -26,7 +26,7 @@ with open(filename, 'r') as csvfile:
                 deletedSnapshots.append(snapshotIds)
             except botocore.exceptions.ClientError as error:
                 if error.response['Error']['Code'] == 'InvalidSnapshot.InUse':
-                    print(f'{snapshotIds} cannot be deleted because it is in use.')
+                    print(error.response['Error']['Message'])
                     inUseSnapshots.append(snapshotIds)
             continue
 print(f'List of deleted snapshots: {deletedSnapshots}')
