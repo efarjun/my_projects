@@ -15,19 +15,19 @@ snapshotIdList = []
 inUseSnapshots = []
 deletedSnapshots = []
 
-filenametest = "csvfileofsnapshots.csv" # Replace the name of this file with your file location.
+filename = "csvfileofsnapshots.csv" # Replace the name of this file with your file location.
 
-with open(filenametest, 'r') as csvfiletest:
-        datareader = csv.reader(csvfiletest)
+with open(filename, 'r') as csvfile:
+        datareader = csv.reader(csvfile)
         for row in datareader:
-            snapshotIdsTest = row[1]
+            snapshotIds = row[1]
             try:
-                ec2Client.delete_snapshot(SnapshotId=snapshotIdsTest)
-                deletedSnapshots.append(snapshotIdsTest)
+                ec2Client.delete_snapshot(SnapshotId=snapshotIds)
+                deletedSnapshots.append(snapshotIds)
             except botocore.exceptions.ClientError as error:
                 if error.response['Error']['Code'] == 'InvalidSnapshot.InUse':
-                    print(f'{snapshotIdsTest} cannot be deleted because it is in use.')
-                    inUseSnapshots.append(snapshotIdsTest)
+                    print(f'{snapshotIds} cannot be deleted because it is in use.')
+                    inUseSnapshots.append(snapshotIds)
             continue
 print(f'List of deleted snapshots: {deletedSnapshots}')
 print(f'List of snapshots in use: {inUseSnapshots}')
