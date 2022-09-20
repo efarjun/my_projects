@@ -1,3 +1,4 @@
+# This script takes all of the snapshot IDs from the second row of a csv file and deletes the snapshot. If the snap shot is in use, it will be added to a list.
 #!/usr/bin/python3
 
 import os
@@ -12,6 +13,7 @@ ec2Client = boto3.client('ec2', region_name=awsRegion)
 
 snapshotIdList = []
 inUseSnapshots = []
+deletedSnapshots = []
 
 filenametest = "CS0080467 - CS0080467test2.csv"
 
@@ -21,9 +23,11 @@ with open(filenametest, 'r') as csvfiletest:
             snapshotIdsTest = row[1]
             try:
                 ec2Client.delete_snapshot(SnapshotId=snapshotIdsTest)
+                deletedSnapshots.append(snapshotIdsTest)
             except botocore.exceptions.ClientError as error:
                 if error.response['Error']['Code'] == 'InvalidSnapshot.InUse':
                     print(f'{snapshotIdsTest} cannot be deleted because it is in use.')
                     inUseSnapshots.append(snapshotIdsTest)
             continue
+print(f'List of deleted snapshots: {deletedSnapshots}')
 print(f'List of snapshots in use: {inUseSnapshots}')
