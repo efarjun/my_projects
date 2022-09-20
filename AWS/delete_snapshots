@@ -15,7 +15,7 @@ snapshotIdList = []
 inUseSnapshots = []
 deletedSnapshots = []
 
-filenametest = "CS0080467 - CS0080467test2.csv"
+filenametest = "csvfileofsnapshots.csv" # Replace the name of this file with your file location.
 
 with open(filenametest, 'r') as csvfiletest:
         datareader = csv.reader(csvfiletest)
