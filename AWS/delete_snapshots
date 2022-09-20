@@ -25,4 +25,5 @@ with open(filenametest, 'r') as csvfiletest:
                 if error.response['Error']['Code'] == 'InvalidSnapshot.InUse':
                     print(f'{snapshotIdsTest} cannot be deleted because it is in use.')
                     inUseSnapshots.append(snapshotIdsTest)
+            continue
 print(f'List of snapshots in use: {inUseSnapshots}')
