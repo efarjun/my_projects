@@ -1,0 +1,28 @@
+#!/usr/bin/python3
+
+import os
+import csv
+import boto3
+import botocore
+
+awsRegion = os.environ['AWS_DEFAULT_REGION']
+stsClient = boto3.client('sts')
+CURRENT_ACCOUNT_ID = stsClient.get_caller_identity()['Account']
+ec2Client = boto3.client('ec2', region_name=awsRegion)
+
+snapshotIdList = []
+inUseSnapshots = []
+
+filenametest = "CS0080467 - CS0080467test2.csv"
+
+with open(filenametest, 'r') as csvfiletest:
+        datareader = csv.reader(csvfiletest)
+        for row in datareader:
+            snapshotIdsTest = row[1]
+            try:
+                ec2Client.delete_snapshot(SnapshotId=snapshotIdsTest)
+            except botocore.exceptions.ClientError as error:
+                if error.response['Error']['Code'] == 'InvalidSnapshot.InUse':
+                    print(f'{snapshotIdsTest} cannot be deleted because it is in use.')
+                    inUseSnapshots.append(snapshotIdsTest)
+print(f'List of snapshots in use: {inUseSnapshots}')
