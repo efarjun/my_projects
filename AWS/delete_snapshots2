@@ -1,0 +1,37 @@
+# The following script will request the number of days you would like to keep snapshots for. Any snapshots older than this number of days will be deleted.
+
+#!/usr/bin/python3
+
+import boto3
+import botocore
+import os
+import datetime
+
+awsRegion = os.environ['AWS_DEFAULT_REGION']
+stsClient = boto3.client('sts')
+account = stsClient.get_caller_identity()['Account']
+
+ec2Client = boto3.client('ec2', region_name=awsRegion)
+response = ec2Client.describe_snapshots(OwnerIds=[account])
+numOfDays = int(input('Enter the number of days to keep snapshots. All snapshots older than this number will be deleted: '))
+from_date = datetime.date.today()-datetime.timedelta(days=numOfDays)
+
+
+deletedSnapshots = []
+inUseSnapshots = []
+
+for snapshot in response['Snapshots']:
+    snapshotId = snapshot['SnapshotId']
+    startTime = snapshot['StartTime']
+    if startTime.date() < from_date:
+        try:
+            #print(snapshotId, startTime.date())
+            ec2Client.delete_snapshot(SnapshotId=snapshotId)
+            deletedSnapshots.append(snapshotId)
+        except botocore.exceptions.ClientError as error:
+            if error.response['Error']['Code'] == 'InvalidSnapshot.InUse':
+                print(f"{error.response['Error']['Message']} and could not be deleted.")
+                inUseSnapshots.append(snapshotId)
+        continue
+print(f'List of deleted snapshots: {deletedSnapshots}')
+print(f'List of snapshots in use: {inUseSnapshots}')
