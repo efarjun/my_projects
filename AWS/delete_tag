@@ -11,15 +11,15 @@ ec2Client = boto3.client('ec2', region_name=awsRegion)
 tags = ec2Client.describe_tags()
 
 for tag in tags['Tags']:
-    if tag['Key'] == 'mission:managed-cloud:backup:weekly' and tag['ResourceType'] == 'instance':
+    if tag['Key'] == <tagKey> and tag['ResourceType'] == 'instance': # Replace 'tagKey' with name of tag key.
         response = ec2Client.delete_tags(
                 Resources = [
                     tag['ResourceId'],
                     ],
                 Tags=[
                     {
-                        'Key': 'mission:managed-cloud:backup:weekly',
-                        'Value': '28days'
+                        'Key': '<tagKey>', # Replace 'tagKey' with name of tag key.
+                        'Value': 'tagValue' # Replace 'tagValue' with name of tag value.
                         },
                     ]
                 )
