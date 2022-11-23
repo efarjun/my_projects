@@ -5,7 +5,6 @@
 import boto3
 import botocore
 import os
-import re
 
 awsRegion = os.environ['AWS_DEFAULT_REGION']
 stsClient = boto3.client('sts')
