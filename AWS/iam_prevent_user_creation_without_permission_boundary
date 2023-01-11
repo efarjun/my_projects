@@ -13,7 +13,7 @@
             ],
             "Condition": {
                 "StringNotEquals": {
-                    "iam:PermissionsBoundary": "arn:aws:iam::023263537724:policy/example-boundary"
+                    "iam:PermissionsBoundary": "arn:aws:iam::012345678910:policy/example-boundary"
                 }
             }
         }
