@@ -1,0 +1,19 @@
+      # Example to prevent user from being created if permission boundary not applied.
+      
+      {
+            "Sid": "VisualEditor1",
+            "Effect": "Deny",
+            "Action": [
+                "iam:CreateRole",
+                "iam:CreateUser"
+            ],
+            "Resource": [
+                "arn:aws:iam::012345678910:role/*",
+                "arn:aws:iam::012345678910:user/*"
+            ],
+            "Condition": {
+                "StringNotEquals": {
+                    "iam:PermissionsBoundary": "arn:aws:iam::023263537724:policy/example-boundary"
+                }
+            }
+        }
