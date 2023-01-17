@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if (( $(stat -c%s "filetest") > 100 ));
+then
+        echo 'file is bigger than 100.'
+else
+        echo 'file is not bigger than 100.'
+fi
