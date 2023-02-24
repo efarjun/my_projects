@@ -1,0 +1,114 @@
+resource "aws_s3_bucket" "test" {
+  bucket = "birdsonghearing-test-20230224.com"
+}
+
+resource "aws_s3_bucket_versioning" "versioning_test" {
+  bucket = aws_s3_bucket.test.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "encryption_test" {
+  bucket = aws_s3_bucket.test.id
+  rule {
+      bucket_key_enabled = true
+  }
+}
+
+resource "aws_cloudfront_origin_access_control" "test" {
+  name                              = "test"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
+resource "aws_cloudfront_origin_access_identity" "test" {
+}
+
+resource "aws_acm_certificate" "cert" {
+  domain_name       = "birdsonghearing-test-20230224.com"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_cloudfront_function" "test" {
+  name    = "test"
+  runtime = "cloudfront-js-1.0"
+  publish = true
+  code    = file("${path.module}/cf-function.js")
+}
+
+locals {
+  s3_origin_id = "originTest"
+}
+
+resource "aws_cloudfront_distribution" "s3_distribution_test" {
+  origin {
+    domain_name              = aws_s3_bucket.test.bucket_regional_domain_name
+    origin_id                = local.s3_origin_id
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.test.cloudfront_access_identity_path
+    }
+  }
+  enabled             = true
+  is_ipv6_enabled     = true
+  comment             = "Some comment"
+  default_root_object = "index.html"
+
+  default_cache_behavior {
+    allowed_methods  = ["GET", "HEAD"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = local.s3_origin_id
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.test.arn
+    }
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    viewer_protocol_policy = "allow-all"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+  }
+
+  price_class = "PriceClass_All"
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+  }
+}
+  viewer_certificate {
+  cloudfront_default_certificate = true
+  ssl_support_method = "sni-only"
+  }
+}
+
+data "aws_iam_policy_document" "s3_policy" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.test.arn}/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.test.iam_arn]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "test" {
+  bucket = aws_s3_bucket.test.id
+  policy = data.aws_iam_policy_document.s3_policy.json
+}
