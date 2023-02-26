@@ -3,7 +3,7 @@ resource "aws_cloudfront_function" "cf_function" {
   name    = "appendindexhtml"
   runtime = "cloudfront-js-1.0"
   publish = var.cf_function == true ? true : false
-  code    = file("${path.module}/cf-function.js")
+  code    = file("${path.module}/cf_function.js")
 
   lifecycle {
     create_before_destroy = true
