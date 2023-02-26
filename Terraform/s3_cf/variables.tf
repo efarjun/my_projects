@@ -3,7 +3,7 @@ variable "bucket_key" {
   type = bool
   default = true
 }
-variable versioning_status {
+variable "versioning_status" {
   default = "enabled"
 }
 variable "allowed_methods" {
