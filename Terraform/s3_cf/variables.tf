@@ -4,7 +4,7 @@ variable "bucket_key" {
   default = true
 }
 variable "versioning_status" {
-  default = "enabled"
+  default = "Enabled"
 }
 variable "allowed_methods" {
   type = list
