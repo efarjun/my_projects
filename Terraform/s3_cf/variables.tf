@@ -1,10 +1,10 @@
 variable "bucket_name" {}
 variable "allowed_methods" {
-  type = list(strings)
+  type = list
   default = ["GET", "HEAD"]
 }
 variable "cached_methods" {
-  type = list(strings)
+  type = list
   default = ["GET", "HEAD"]
 }
 variable "oac_name" {}
