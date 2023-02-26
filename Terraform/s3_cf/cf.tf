@@ -9,7 +9,7 @@ resource "aws_cloudfront_origin_access_identity" "cf_oai" {
 }
 
 resource "aws_acm_certificate" "cert" {
-  domain_name       = aws_s3_bucket.s3.id
+  domain_name       = aws_s3_bucket.s3_bucket.id
   validation_method = "DNS"
 }
 
@@ -28,7 +28,7 @@ resource "aws_cloudfront_function" "cf_function" {
 resource "aws_cloudfront_distribution" "cloudfront_function_yes" {
   count = var.cf_function == true ? 1 : 0
   origin {
-    domain_name              = aws_s3_bucket.s3.bucket_regional_domain_name
+    domain_name              = aws_s3_bucket.s3_bucket.bucket_regional_domain_name
     origin_id                = local.s3_origin_id
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.cf_oai.cloudfront_access_identity_path
@@ -78,7 +78,7 @@ resource "aws_cloudfront_distribution" "cloudfront_function_yes" {
 resource "aws_cloudfront_distribution" "cloudfront_function_no" {
   count = var.cf_function == false ? 1 : 0
   origin {
-    domain_name              = aws_s3_bucket.s3.bucket_regional_domain_name
+    domain_name              = aws_s3_bucket.s3_bucket.bucket_regional_domain_name
     origin_id                = local.s3_origin_id
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.cf_oai.cloudfront_access_identity_path
