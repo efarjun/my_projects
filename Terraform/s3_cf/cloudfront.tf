@@ -13,18 +13,6 @@ resource "aws_acm_certificate" "cert" {
   validation_method = "DNS"
 }
 
-resource "aws_cloudfront_function" "cf_function" {
-  count   = var.cf_function == true ? 1 : 0
-  name    = "test"
-  runtime = "cloudfront-js-1.0"
-  publish = var.cf_function == true ? true : false
-  code    = file("${path.module}/cf-function.js")
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_cloudfront_distribution" "cloudfront_function_yes" {
   count = var.cf_function == true ? 1 : 0
   origin {
