@@ -1,4 +1,8 @@
 variable "bucket_name" {}
+variable "bucket_key" {
+  type = bool
+  default = true
+}
 variable "allowed_methods" {
   type = list
   default = ["GET", "HEAD"]
