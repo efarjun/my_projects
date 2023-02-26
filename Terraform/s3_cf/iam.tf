@@ -1,7 +1,7 @@
 data "aws_iam_policy_document" "s3_policy_document" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.test.arn}/*"]
+    resources = ["${aws_s3_bucket.s3_bucket.arn}/*"]
 
     principals {
       type        = "AWS"
