@@ -4,5 +4,5 @@ data "aws_cloudfront_function" "cf_function" {
 }
 
 data "aws_acm_certificate" "cf_distribution_cert" {
-  domain = "bhb-test1.com"
+  domain = "ef-20230226-test1.com"
 }
