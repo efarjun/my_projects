@@ -1,8 +1,8 @@
-bucket_name {}
-versioning_status {
+variable "bucket_name" {}
+variable "versioning_status" {
   default = "Enabled"
 }
-bucket_key {
+variable "bucket_key" {
   type = bool
   default = true
 }
