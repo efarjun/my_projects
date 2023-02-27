@@ -6,6 +6,3 @@ variable "alternative_names" {
   type = list
   default = null
 }
-variable "key_algorithm" {
-  default = null
-}
