@@ -104,6 +104,7 @@ resource "aws_cloudfront_distribution" "cloudfront_function_no" {
 }
   viewer_certificate {
   cloudfront_default_certificate = true
+  acm_certificate_arn = data.
   ssl_support_method = "sni-only"
   }
 }
