@@ -57,7 +57,7 @@ variable "event_type" {
   default = null
 }
 variable "cloudfront_function" {
-  description "If function being used, use ARN of function."
+  description = "If function being used, use ARN of function."
   default = null
 }
 variable "query_string" {
