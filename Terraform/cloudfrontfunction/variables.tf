@@ -10,3 +10,6 @@ variable "function_publish" {
   type = "bool"
   default = false
 }
+variable "function_file" {
+  description = "Name of file with function."
+}
