@@ -11,7 +11,7 @@ resource "aws_cloudfront_origin_access_identity" "oai" {
 resource "aws_cloudfront_distribution" "s3_distribution_with_function" {
   count = var.cf_function == true ? 1 : 0
   origin {
-    domain_name              = aws_s3_bucket.s3_bucket.bucket_regional_domain_name
+    domain_name              = var.s3_origin_name
     origin_id                = var.origin_id
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
@@ -29,7 +29,7 @@ resource "aws_cloudfront_distribution" "s3_distribution_with_function" {
 
     function_association {
       event_type   = var.event_type
-      function_arn = aws_cloudfront_function.function.arn
+      function_arn = var.cloudfront_function
     }
 
     forwarded_values {
@@ -62,7 +62,7 @@ resource "aws_cloudfront_distribution" "s3_distribution_with_function" {
 resource "aws_cloudfront_distribution" "s3_distribution_without_function" {
   count = var.cf_function == false ? 1 : 0
   origin {
-    domain_name              = aws_s3_bucket.s3_bucket.bucket_regional_domain_name
+    domain_name              = var.s3_origin_name
     origin_id                = var.origin_id
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
@@ -108,7 +108,7 @@ resource "aws_cloudfront_distribution" "s3_distribution_without_function" {
 data "aws_iam_policy_document" "s3_policy" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.s3_bucket.arn}/*"]
+    resources = ["${var.s3_origin_name}/*"]
 
     principals {
       type        = var.principal_type
@@ -118,6 +118,6 @@ data "aws_iam_policy_document" "s3_policy" {
 }
 
 resource "aws_s3_bucket_policy" "cloudfront_bucket_policy" {
-  bucket = aws_s3_bucket.s3_bucket.id
+  bucket = var.s3_origin_name
   policy = data.aws_iam_policy_document.s3_policy.json
 }
