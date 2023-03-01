@@ -111,7 +111,7 @@ data "aws_iam_policy_document" "s3_policy" {
     resources = ["${aws_s3_bucket.s3_bucket.arn}/*"]
 
     principals {
-      type        = var.principa_type
+      type        = var.principal_type
       identifiers = [aws_cloudfront_origin_access_identity.oai.iam_arn]
     }
   }
