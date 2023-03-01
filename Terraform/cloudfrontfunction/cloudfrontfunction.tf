@@ -1,4 +1,4 @@
-resource "aws_cloudfront_function" "test" {
+resource "aws_cloudfront_function" "function" {
   name    = var.function_name
   runtime = var.function_runtime
   publish = var.function_publish
