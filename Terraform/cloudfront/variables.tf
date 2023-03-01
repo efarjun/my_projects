@@ -21,12 +21,12 @@ variable "origin_id" {
 }
 variable "enabled" {
   description = "If the distribution is enabled."
-  type = "bool"
+  type = bool
   default = true
 }
 variable "ipv6" {
   description = "If IPv6 is enabled."
-  type = "bool"
+  type = bool
   default = true
 }
 variable "comment" {
@@ -39,17 +39,18 @@ variable "root_object" {
 }
 variable "allowed_methods" {
   description = "Allowed HTTP methods."
-  type = "list"
+  type = list
   default = ["GET", "HEAD"]
 }
 variable "cached_methods" {
   description = "Cached HTTP methods."
-  type = "list"
+  type = list
   default = ["GET", "HEAD"]
 }
 variable "cf_function" {
   description = "If CloudFront Function is being used."
-  type = "bool"
+  type = bool
+  default = false
 }
 variable "event_type" {
   description = "If function being used, use viewer-request."
@@ -60,7 +61,7 @@ variable "cloudfront_function" {
   default = null
 }
 variable "query_string" {
-  type = "bool"
+  type = bool
   default = false
 }
 variable "forward" {
@@ -85,7 +86,7 @@ variable "restriction_type" {
   default = "none"
 }
 variable "viewer_certificate" {
-  type = "bool"
+  type = bool
   default = true
 }
 variable "certificate_arn" {
