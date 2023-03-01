@@ -1,8 +1,8 @@
 resource "aws_cloudfront_origin_access_control" "oac" {
   name                              = var.oac_name
-  origin_access_control_origin_type = "s3"
-  signing_behavior                  = "always"
-  signing_protocol                  = "sigv4"
+  origin_access_control_origin_type = var.oac_type
+  signing_behavior                  = var,signing_behavior
+  signing_protocol                  = var.signing_protocol
 }
 
 resource "aws_cloudfront_origin_access_identity" "oai" {
@@ -64,7 +64,7 @@ data "aws_iam_policy_document" "s3_policy" {
     resources = ["${aws_s3_bucket.s3_bucket.arn}/*"]
 
     principals {
-      type        = "AWS"
+      type        = var.principa_type
       identifiers = [aws_cloudfront_origin_access_identity.oai.iam_arn]
     }
   }
