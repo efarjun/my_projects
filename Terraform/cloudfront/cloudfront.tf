@@ -25,7 +25,7 @@ resource "aws_cloudfront_distribution" "s3_distribution_with_function" {
   default_cache_behavior {
     allowed_methods  = var.allowed_methods
     cached_methods   = var.cached_methods
-    target_origin_id = local.s3_origin_id
+    target_origin_id = var.origin_id
 
     function_association {
       event_type   = var.event_type
