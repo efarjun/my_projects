@@ -6,3 +6,15 @@ variable "bucket_key" {
   type = bool
   default = true
 }
+variable "public_acls" {
+  default = true
+}
+variable "ignore_public_acls" {
+  default = true
+}
+variable "ignore_public_acls" {
+  defaulr = true
+}
+variable "restrict_public_buckets" {
+  default = true
+}
