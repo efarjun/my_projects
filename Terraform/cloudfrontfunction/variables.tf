@@ -7,7 +7,7 @@ variable "function_runtime" {
 }
 variable "function_publish" {
   description = "Publish to distribution"
-  type = "bool"
+  type = bool
   default = false
 }
 variable "function_file" {
