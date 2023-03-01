@@ -9,6 +9,9 @@ variable "bucket_key" {
 variable "public_acls" {
   default = true
 }
+variable "public_policy" {
+  default = true
+}
 variable "ignore_public_acls" {
   default = true
 }
