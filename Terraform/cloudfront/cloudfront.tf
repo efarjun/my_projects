@@ -54,8 +54,9 @@ resource "aws_cloudfront_distribution" "s3_distribution_with_function" {
   }
 }
   viewer_certificate {
-  cloudfront_default_certificate = var.viewer_certificate
-  ssl_support_method = var.ssl_support_method
+    cloudfront_default_certificate = var.viewer_certificate
+    acm_certificate_arn = var.certificate_arn 
+    ssl_support_method = var.ssl_support_method
   }
 }
 
@@ -100,8 +101,9 @@ resource "aws_cloudfront_distribution" "s3_distribution_without_function" {
   }
 }
   viewer_certificate {
-  cloudfront_default_certificate = var.viewer_certificate
-  ssl_support_method = var.ssl_support_method
+    cloudfront_default_certificate = var.viewer_certificate
+    acm_certificate_arn = var.certificate_arn 
+    ssl_support_method = var.ssl_support_method
   }
 }
 
