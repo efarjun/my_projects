@@ -12,9 +12,6 @@ variable "public_acls" {
 variable "ignore_public_acls" {
   default = true
 }
-variable "ignore_public_acls" {
-  default = true
-}
 variable "restrict_public_buckets" {
   default = true
 }
