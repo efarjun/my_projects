@@ -14,7 +14,7 @@ variable "signing_protocol" {
   default = "sigv4"
 }
 variable "s3_origin_name" {
-  description = "The name of the S3 bucket that will be the Cloudfront origin."
+  description = "The name of the S3 bucket that will be the name of the Cloudfront S3 origin."
 }
 variable "origin_id" {
   description = "Origin ID."
