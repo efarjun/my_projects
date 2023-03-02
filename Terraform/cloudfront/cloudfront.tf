@@ -124,6 +124,6 @@ data "aws_iam_policy_document" "s3_policy" {
 }
 
 resource "aws_s3_bucket_policy" "cloudfront_bucket_policy" {
-  bucket = var.data.aws_s3_bucket.bucket_for_policy.id
+  bucket = data.aws_s3_bucket.bucket_for_policy.id
   policy = data.aws_iam_policy_document.s3_policy.json
 }
