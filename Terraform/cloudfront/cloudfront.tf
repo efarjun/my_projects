@@ -11,7 +11,7 @@ resource "aws_cloudfront_origin_access_identity" "oai" {
 resource "aws_cloudfront_distribution" "s3_distribution_with_function" {
   count = var.cf_function == true ? 1 : 0
   origin {
-    domain_name              = var.s3_origin_name
+    domain_name              = "${var.s3_origin_name}.s3.us-east-1.amazonaws.com"
     origin_id                = var.origin_id
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
