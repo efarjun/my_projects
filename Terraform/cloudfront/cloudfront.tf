@@ -107,10 +107,14 @@ resource "aws_cloudfront_distribution" "s3_distribution_without_function" {
   }
 }
 
+data "aws_s3_bucket" "bucket_for_policy" {
+  bucket = var.s3_origin_name
+}
+
 data "aws_iam_policy_document" "s3_policy" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["${var.s3_origin_name}/*"]
+    resources = ["${data.aws_s3_bucket.bucket_for_policy.arn}/*"]
 
     principals {
       type        = var.principal_type
@@ -120,6 +124,6 @@ data "aws_iam_policy_document" "s3_policy" {
 }
 
 resource "aws_s3_bucket_policy" "cloudfront_bucket_policy" {
-  bucket = var.s3_origin_name
+  bucket = var.data.aws_s3_bucket.bucket_for_policy.id
   policy = data.aws_iam_policy_document.s3_policy.json
 }
