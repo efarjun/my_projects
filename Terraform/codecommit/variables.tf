@@ -18,7 +18,7 @@ variable "events" {
     default = ["all"]
 }
 variable "branches" {
-    description = "The brnaches that will be included in the trigger configuration."
+    description = "The branches that will be included in the trigger configuration."
     default = null
 }
 variable "destination_arn" {
