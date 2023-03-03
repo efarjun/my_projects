@@ -7,7 +7,7 @@ variable "description" {
 }
 variable "default_branch" {
     description = "Default branch of the repository."
-    default = null
+    default = "main"
 }
 variable "trigger_name" {
     description = "Name of trigger."
