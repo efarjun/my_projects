@@ -23,6 +23,7 @@ resource "aws_codebuild_project" "codebuild_project" {
   }
   source {
     type            = var.source_type
+    location        = var.source_location
 
     git_submodules_config {
       fetch_submodules = var.fetch_submodules
