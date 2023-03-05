@@ -13,7 +13,8 @@ resource "aws_codepipeline" "codepipeline" {
   artifact_store {
     location = data.aws_s3_bucket.codepipeline_bucket.bucket
     type     = var.artifact_store_type
-
+  }
+      
   stage {
     name = "Source"
 
