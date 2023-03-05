@@ -13,7 +13,8 @@ resource "aws_codebuild_project" "codebuild_project" {
     image                       = var.image
     type                        = var.env_type
     image_pull_credentials_type = var.image_pull_credentials_type
-
+  }
+    
   logs_config {
     cloudwatch_logs {
       group_name  = local.cw_log_group
@@ -27,6 +28,6 @@ resource "aws_codebuild_project" "codebuild_project" {
       fetch_submodules = var.fetch_submodules
       }
     }
-  }
+      
   source_version = var.source_version
 }
