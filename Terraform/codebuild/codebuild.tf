@@ -25,8 +25,8 @@ resource "aws_codebuild_project" "codebuild_project" {
 
     git_submodules_config {
       fetch_submodules = var.fetch_submodules
+      }
     }
   }
-
   source_version = var.source_version
 }
