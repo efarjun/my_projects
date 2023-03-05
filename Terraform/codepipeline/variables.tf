@@ -50,7 +50,7 @@ variable "poll_for_source_changes" {
     default = false
 }
 variable "build_name" {
-    description - "name of build stage."
+    description = "name of build stage."
     default = "Build"
 }
 variable "build_category" {
