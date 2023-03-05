@@ -18,7 +18,7 @@ variable "source_name" {
     default = "Source"
 }
 variable "source_category" {
-    default = null
+    default = "Source"
 }
 variable "source_owner" {
     default = "AWS"
@@ -54,7 +54,7 @@ variable "build_name" {
     default = "Build"
 }
 variable "build_category" {
-    default = null
+    default = "Build"
 }
 variable "build_owner" {
     default = "AWS"
@@ -83,7 +83,7 @@ variable "deploy_name" {
     default = "Deploy"
 }
 variable "deploy_category" {
-    default = null
+    default = "Deploy"
 }
 variable "deploy_owner" {
     default = "AWS"
