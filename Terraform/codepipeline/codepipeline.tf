@@ -3,7 +3,7 @@ data "aws_iam_role" "codepipeline_role" {
 }
 
 data "aws_s3_bucket" "codepipeline_bucket" {
-    name = var.codepipeline_bucket_name
+    bucket = var.codepipeline_bucket_name
 }
 
 resource "aws_codepipeline" "codepipeline" {
