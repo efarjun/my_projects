@@ -69,7 +69,7 @@ resource "aws_codepipeline" "codepipeline" {
 
       configuration = {
         Extract        = var.extract
-        BucketName     = var.bucket_name
+        BucketName     = data.aws_s3_bucket.codepipeline_bucket.id
       }
     }
   }
