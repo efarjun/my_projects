@@ -68,7 +68,7 @@ variable "build_input_artifacts" {
 }
 variable "build_output_artifacts" {
     type = list
-    default = "BuildArtifact"
+    default = ["BuildArtifact"]
 }
 variable "build_version" {
     default = 1
