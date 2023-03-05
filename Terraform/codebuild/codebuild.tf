@@ -1,4 +1,4 @@
-locals = {
+locals {
     cw_log_group = "${var.project_name}-CodeBuild-log-group"
     cw_stream_name = "${var.project_name}-CodeBuild-log-stream"
 }
