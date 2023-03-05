@@ -28,7 +28,7 @@ variable "image_pull_credentials_type" {
 }
 variable "source_type" {
     description = "Repository type that contains source code."
-    default = "CODECOMMIT"
+    default = "CODEPIPELINE"
 }
 variable "source_location" {
     description = "Location of source code."
@@ -38,7 +38,7 @@ variable "fetch_submodules" {
     default = true
 }
 variable "artifacts" {
-    default = "NO_ARTIFACTS"
+    default = "CODEPIPELINE"
 }
 variable "source_version" {
     default = null
