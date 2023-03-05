@@ -32,7 +32,7 @@ variable "source_type" {
 }
 variable "source_location" {
     description = "Location of source code."
-    default - 
+    default = null
 }
 variable "fetch_submodules" {
     type = bool
