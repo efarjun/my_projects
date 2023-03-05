@@ -28,6 +28,10 @@ resource "aws_codebuild_project" "codebuild_project" {
       fetch_submodules = var.fetch_submodules
       }
     }
-      
+  
+  artifacts {
+    type = var.artifacts
+  }
+    
   source_version = var.source_version
 }
