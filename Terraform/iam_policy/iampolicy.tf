@@ -1,9 +1,7 @@
 resource "aws_iam_policy" "policy" {
-  name        = "test_policy"
-  path        = "/"
-  description = "My test policy"
+  name        = var.name
+  path        = var.path
+  description = var.description
 
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = "${file("policy.json")}"
+  policy = file("${path.module}/${var.policy_document}")
 }
