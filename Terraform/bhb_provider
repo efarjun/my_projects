@@ -1,0 +1,53 @@
+###########################
+# DEFINING LOCALS
+###########################
+
+locals {
+  aws_account_id = {
+    prod : 785361058348
+    uat : 578052939829
+  }
+  env        = terraform.workspace == "default" ? "dev" : terraform.workspace
+  account_id = local.aws_account_id[local.env]
+}
+
+###########################
+# TERRAFORM CONFIGURATION
+###########################
+
+terraform {
+  backend "s3" {
+    bucket         = "bhb-terraform-state"
+    key            = "network/iam/birdsong-site"
+    region         = "us-east-1"
+    dynamodb_table = "terraform_state_lock"
+    encrypt        = true
+  }
+}
+
+###########################
+# PROVIDER CONFIGURATION
+###########################
+
+terraform {
+  required_providers {
+    aws = "~> 3.6"
+  }
+}
+
+provider "aws" {
+  region = var.region
+  assume_role {
+    role_arn     = "arn:aws:iam::${local.account_id}:role/iac"
+    session_name = "terraform_session"
+  }
+  default_tags {
+    tags = {
+      Environment = terraform.workspace
+      App         = var.app
+      Managed_by  = "DevOps"
+      Automation  = "Terraform"
+      Name        = "${terraform.workspace}-${var.app}"
+    }
+  }
+}
