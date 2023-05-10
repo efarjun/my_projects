@@ -1,0 +1,169 @@
+resource "aws_ssm_document" "autopremaintenance" {
+  name          = "AutomatedPreMaintenance"
+  document_type = "Automation"
+  content = <<EOF
+{
+  "description":"Automated Pre-Maintenance",
+  "schemaVersion":"0.3",
+  "assumeRole":"${aws_iam_role.ssm.arn}",
+  "parameters":{
+    "InstanceId":{
+      "type":"String",
+      "description":"Instance to perform the maintenance on",
+      "default":"{{TARGET_ID}}"
+    },
+    "SNSARN":{
+      "type":"String",
+      "description":"ARN of the SNS notification topic used to publish maintenance notifications"
+    },
+    "WaitTime":{
+      "type":"String",
+      "description":"How long to wait after the inital notice before maintenance begins",
+      "default":"PT5M"
+    },
+    "TagKey":{
+      "type":"String",
+      "description":"The tagkey used to trigger this maintenance for logging purposes.",
+      "default":""
+    },
+    "TagValue":{
+      "type":"String",
+      "description":"The tagvalue used to trigger this maintenance for logging purposes.",
+      "default":""
+    }
+  },
+  "mainSteps":[
+    {
+      "name": "NotifyPreMaintenance",
+      "action": "aws:invokeLambdaFunction",
+      "maxAttempts": 3,
+      "timeoutSeconds": 120,
+      "inputs": {
+        "FunctionName": "auto-maintenance-prestart",
+        "Payload":"{\"instanceid\":\"{{InstanceId}}\",\"region\":\"{{global:REGION}}\",\"account\":\"{{global:ACCOUNT_ID}}\",\"snsarn\":\"{{SNSARN}}\",\"tagkey\":\"{{TagKey}}\",\"tagvalue\":\"{{TagValue}}\"}"
+      }
+    },
+    {
+      "name": "Sleep",
+      "action": "aws:sleep",
+      "inputs": {
+        "Duration":"{{WaitTime}}"
+      }
+    }
+  ]
+}
+EOF
+}
+resource "aws_ssm_document" "automaintenance" {
+  name          = "AutomatedMaintenance"
+  document_type = "Automation"
+  content = <<EOF
+{
+  "description":"Automated Maintenance",
+  "schemaVersion":"0.3",
+  "assumeRole":"${aws_iam_role.ssm.arn}",
+  "parameters":{
+    "InstanceId":{
+      "type":"String",
+      "description":"Instance to perform the maintenance on",
+      "default":"{{TARGET_ID}}"
+    },
+    "SNSARN":{
+      "type":"String",
+      "description":"ARN of the SNS notification topic used to publish maintenance notifications"
+    },
+    "UpdateTimeout":{
+      "type":"Integer",
+      "description":"Number of seconds before the patch step is considered to have timed out and is marked as failed (Default: 3600 (1 hour))",
+      "default":3600
+    },
+    "TagKey":{
+      "type":"String",
+      "description":"The tagkey used to trigger this maintenance for logging purposes.",
+      "default":""
+    },
+    "TagValue":{
+      "type":"String",
+      "description":"The tagvalue used to trigger this maintenance for logging purposes.",
+      "default":""
+    }
+  },
+  "mainSteps":[
+    {
+      "name": "NotifyStartMaintenance",
+      "action": "aws:invokeLambdaFunction",
+      "onFailure":"Abort",
+      "maxAttempts": 3,
+      "timeoutSeconds": 120,
+      "inputs": {
+        "FunctionName": "auto-maintenance-start",
+        "Payload":"{\"automationid\":\"{{automation:EXECUTION_ID}}\",\"instanceid\":\"{{InstanceId}}\",\"region\":\"{{global:REGION}}\",\"account\":\"{{global:ACCOUNT_ID}}\",\"snsarn\":\"{{SNSARN}}\",\"tagkey\":\"{{TagKey}}\",\"tagvalue\":\"{{TagValue}}\"}"
+      }
+    },
+    {
+      "name": "CreateBackup",
+      "action": "aws:createImage",
+      "onFailure":"Continue",
+      "maxAttempts": 3,
+      "inputs": {
+        "InstanceId": "{{InstanceId}}",
+        "ImageName": "Maintenance__{{InstanceId}}__{{global:DATE_TIME}}",
+        "NoReboot": true,
+        "ImageDescription": "Automated backup for {{InstanceId}} started at {{global:DATE_TIME}}"
+     }
+    },
+    {
+      "name": "CheckBackup",
+      "action": "aws:invokeLambdaFunction",
+      "onFailure":"Abort",
+      "inputs": {
+        "FunctionName": "auto-maintenance-checkbackup",
+        "Payload":"{\"automationid\":\"{{automation:EXECUTION_ID}}\",\"instanceid\":\"{{InstanceId}}\",\"region\":\"{{global:REGION}}\",\"account\":\"{{global:ACCOUNT_ID}}\",\"snsarn\":\"{{SNSARN}}\",\"tagkey\":\"{{TagKey}}\",\"tagvalue\":\"{{TagValue}}\"}"
+      }
+    },
+    {
+      "name": "ScanPatchBaseline",
+      "action": "aws:runCommand",
+      "onFailure": "Continue",
+      "inputs": {
+        "DocumentName": "AWS-RunPatchBaseline",
+        "InstanceIds": ["{{InstanceId}}"],
+        "Parameters": {
+          "Operation": "Scan"
+        }
+      }
+    },
+    {
+      "name": "UpdateSSMAgent",
+      "action": "aws:runCommand",
+      "onFailure": "Continue",
+      "inputs": {
+        "DocumentName": "AWS-UpdateSSMAgent",
+        "InstanceIds": ["{{InstanceId}}"]
+      }
+    },
+    {
+      "name": "ApplyPatchBaseline",
+      "action": "aws:runCommand",
+      "onFailure": "Continue",
+      "inputs": {
+        "DocumentName": "AWS-RunPatchBaseline",
+        "InstanceIds": ["{{InstanceId}}"],
+        "TimeoutSeconds": "{{UpdateTimeout}}",
+        "Parameters": {
+          "Operation": "Install"
+        }
+      }
+    },
+    {
+      "name": "NotifyEndMaintenance",
+      "action": "aws:invokeLambdaFunction",
+      "maxAttempts": 3,
+      "timeoutSeconds": 120,
+      "inputs": {
+        "FunctionName": "auto-maintenance-final",
+        "Payload":"{\"automationid\":\"{{automation:EXECUTION_ID}}\",\"instanceid\":\"{{InstanceId}}\",\"region\":\"{{global:REGION}}\",\"account\":\"{{global:ACCOUNT_ID}}\",\"snsarn\":\"{{SNSARN}}\",\"tagkey\":\"{{TagKey}}\",\"tagvalue\":\"{{TagValue}}\"}"
+      }
+    }
+  ]
+}
