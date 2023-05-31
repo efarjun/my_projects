@@ -1,0 +1,38 @@
+{
+	"metrics": {
+		"aggregation_dimensions": [
+			[
+				"InstanceId"
+			]
+		],
+		"append_dimensions": {
+			"AutoScalingGroupName": "${aws:AutoScalingGroupName}",
+			"ImageId": "${aws:ImageId}",
+			"InstanceId": "${aws:InstanceId}",
+			"InstanceType": "${aws:InstanceType}"
+		},
+		"metrics_collected": {
+			"Process": {
+				"measurement": [
+					"Status"
+				],
+				"metrics_collection_interval": 30,
+				"resources": [
+					"amazon-cloudwatch-agent.exe"
+				],
+				"dimensions": {
+					"Name": "CloudWatchAgent",
+					"ExecutablePath": "C:\\Program Files\\Amazon\\AmazonCloudWatchAgent\\amazon-cloudwatch-agent.exe"
+				}
+			},
+			"procstat": [
+				{
+					"exe": "amazon-cloudwatch-agent",
+					"measurement": [
+						"pid_count"
+					]
+				}
+			]
+		}
+	}
+}
