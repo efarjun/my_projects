@@ -1,0 +1,14 @@
+Location of config.json file:
+C:\Program Files\Amazon\AmazonCloudWatchAgent
+
+Create and add agent configuration to the following file:
+C:\Program Files\Amazon\SSM\Plugins\awsCloudWatch\AWS.EC2.Windows.CloudWatch.json
+
+Get the information about a process:
+Get-Process amazon-cloudwatch-agent | Format-List *
+
+Update the CloudWatch Agent config:
+& $Env:ProgramFiles\Amazon\AmazonCloudWatchAgent\amazon-cloudwatch-agent-ctl.ps1 -m ec2 -a fetch-config -c file:'C:\Program Files\Amazon\AmazonCloudWatchAgent\config.json'
+
+To stop the CloudWatch Agent (or start, check the status):
+& $Env:ProgramFiles\Amazon\AmazonCloudWatchAgent\amazon-cloudwatch-agent-ctl.ps1 -m ec2 -a stop
