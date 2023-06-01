@@ -18,3 +18,23 @@ Update the CloudWatch Agent config:
 
 To stop the CloudWatch Agent (or start, check the status):
 & $Env:ProgramFiles\Amazon\AmazonCloudWatchAgent\amazon-cloudwatch-agent-ctl.ps1 -m ec2 -a stop
+
+
+User Data Script to install and start SSM and CloudWatch Agent:
+# Install and start the Amazon SSM agent
+$ssmInstaller = "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/windows_amd64/AmazonSSMAgentInstaller.exe"
+$ssmInstallerPath = "$env:TEMP\AmazonSSMAgentInstaller.exe"
+Invoke-WebRequest -Uri $ssmInstaller -OutFile $ssmInstallerPath
+Start-Process -Wait -FilePath $ssmInstallerPath -ArgumentList "/S"
+
+# Install and start the AWS CloudWatch agent
+$cloudWatchInstaller = "https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi"
+$cloudWatchInstallerPath = "$env:TEMP\amazon-cloudwatch-agent.msi"
+Invoke-WebRequest -Uri $cloudWatchInstaller -OutFile $cloudWatchInstallerPath
+Start-Process -Wait -FilePath msiexec.exe -ArgumentList "/i", $cloudWatchInstallerPath, "/quiet"
+
+# Start the Amazon SSM agent
+Start-Service -Name "AmazonSSMAgent"
+
+# Start the AWS CloudWatch agent
+Start-Service -Name "AmazonCloudWatchAgent"
