@@ -12,22 +12,9 @@
 			"InstanceType": "${aws:InstanceType}"
 		},
 		"metrics_collected": {
-			"Process": {
-				"measurement": [
-					"Status"
-				],
-				"metrics_collection_interval": 30,
-				"resources": [
-					"amazon-cloudwatch-agent.exe"
-				],
-				"dimensions": {
-					"Name": "CloudWatchAgent",
-					"ExecutablePath": "C:\\Program Files\\Amazon\\AmazonCloudWatchAgent\\amazon-cloudwatch-agent.exe"
-				}
-			},
 			"procstat": [
 				{
-					"exe": "amazon-cloudwatch-agent",
+					"exe": "example-Service",
 					"measurement": [
 						"pid_count"
 					]
