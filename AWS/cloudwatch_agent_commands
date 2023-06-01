@@ -1,3 +1,9 @@
+Download CloudWatch Agent:
+Invoke-WebRequest -Uri "https://s3.amazonaws.com/amazoncloudwatch-agent/windows/amd64/latest/amazon-cloudwatch-agent.msi"
+
+Install CloudWatch Agent (switch into directory):
+msiexec /i amazon-cloudwatch-agent.msi
+
 Location of config.json file:
 C:\Program Files\Amazon\AmazonCloudWatchAgent
 
