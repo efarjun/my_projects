@@ -1,0 +1,67 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "SSMDocumentAccess",
+            "Effect": "Allow",
+            "Action": [
+                "ssm:DescribeDocument",
+                "ssm:GetDocument",
+                "ssm:ListDocumentVersions"
+            ],
+            "Resource": "arn:aws:ssm:us-east-1:210800215573:document/EC2-Patching-Automation"
+        },
+        {
+            "Sid": "EC2InstanceAccess",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateImage",
+                "ec2:CopyImage",
+                "ec2:DeregisterImage",
+                "ec2:DeleteSnapshot",
+                "ec2:startInstances",
+                "ec2:RunInstances",
+                "ec2:StopInstances",
+                "ec2:TerminateInstances",
+                "ec2:DescribeInstanceStatus",
+                "ec2:CreateTags",
+                "ec2:DeleteTags",
+                "ec2:DescribeTags",
+                "ec2:Describe*",
+                "ec2messages:*",
+                "cloudformation:CreateStack",
+                "cloudformation:DescribeStackEvents",
+                "cloudformation:DescribeStacks",
+                "cloudformation:UpdateStack",
+                "cloudformation:DeleteStack"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "SSMParameterAccess",
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParameters"
+            ],
+            "Resource": "arn:aws:ssm:us-east-1:210800215573:parameter/MaintenanceMode"
+        },
+        {
+            "Sid": "InvokeLambdaFunction",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:InvokeFunction"
+            ],
+            "Resource": "arn:aws:lambda:us-east-1:210800215573:function:SSM-EC2-Patching-Fail-Notify"
+        },
+        {
+            "Sid": "CloudWatchAccess",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
