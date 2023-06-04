@@ -18,7 +18,7 @@ mainSteps:
       ImageName: 'Maintenance__{{InstanceId}}__{{global:DATE_TIME}}'
       NoReboot: true
       ImageDescription: 'Automated backup for {{InstanceId}} started at {{global:DATE_TIME}}'
-    onFailure: Continue
+    onFailure: Abort
     nextStep: ScanPatchBaseline
   - name: ScanPatchBaseline
     action: 'aws:runCommand'
@@ -28,7 +28,7 @@ mainSteps:
         - '{{InstanceId}}'
       Parameters:
         Operation: Scan
-    onFailure: Continue
+    onFailure: Abort
     nextStep: UpdateSSMAgent
   - name: UpdateSSMAgent
     action: 'aws:runCommand'
@@ -36,7 +36,7 @@ mainSteps:
       InstanceIds:
         - '{{InstanceId}}'
       DocumentName: AWS-UpdateSSMAgent
-    onFailure: Continue
+    onFailure: Abort
     nextStep: ApplyPatchBaseline
   - name: ApplyPatchBaseline
     action: 'aws:runCommand'
