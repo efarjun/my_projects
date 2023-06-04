@@ -1,0 +1,34 @@
+import boto3
+import json
+
+def lambda_handler(event, context):
+    # Extract the relevant information from the event
+    status = event['detail']['status']
+    execution_id = event['detail']['executionId']
+    execution_name = event['detail']['name']
+
+    if status == 'Succeeded':
+        # Check if all tasks succeeded
+        tasks = event['detail']['output']['executionSucceeded']
+        if all(tasks):
+            sns_topic_arn = 'arn:aws:sns:us-east-1:210800215573:patch-automation-test'
+
+            # Create an SNS client
+            sns_client = boto3.client('sns')
+
+            # Compose the notification message
+            message = f"SSM patching succeeded for execution ID: {execution_id}, Execution Name: {execution_name}"
+
+            # Publish the SNS notification
+            response = sns_client.publish(
+                TopicArn=sns_topic_arn,
+                Message=message
+            )
+
+            # Print the response for logging purposes
+            print(response)
+
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Notification sent successfully')
+    }
