@@ -7,6 +7,9 @@ variable "document_format" {
 variable "document_type" {
   default = "Automation"
 }
+variable "document_file" {
+  default = "ec2_patching_document.yaml"
+}
 variable "window_name" {
   default = "EC2-Patching-Maintenance"
 }
