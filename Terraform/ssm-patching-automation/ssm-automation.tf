@@ -3,7 +3,7 @@ resource "aws_ssm_document" "ec2-patch-document" {
   document_format = var.document_format
   document_type = var.document_type
 
-  content = var.document_file
+  content = file("${path.module}/${var.document_file}")
 }
 
 resource "aws_ssm_maintenance_window" "ec2-patch-window" {
