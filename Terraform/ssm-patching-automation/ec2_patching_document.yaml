@@ -1,0 +1,68 @@
+description: EC2 Patching Automation
+schemaVersion: '0.3'
+assumeRole: 'arn:aws:iam::210800215573:role/EC2-Patching-Automation-Role'
+parameters:
+  InstanceId:
+    type: String
+    description: Instance to perform the maintenance on"
+    default: '{{TARGET_ID}}'
+  UpdateTimeout:
+    type: Integer
+    default: 3600
+    description: 'Number of seconds before the patch step is considered to have timed out and is marked as failed (Default: 3600 (1 hour))'
+mainSteps:
+  - name: CreateBackup
+    action: 'aws:createImage'
+    inputs:
+      InstanceId: '{{InstanceId}}'
+      ImageName: 'Maintenance__{{InstanceId}}__{{global:DATE_TIME}}'
+      NoReboot: true
+      ImageDescription: 'Automated backup for {{InstanceId}} started at {{global:DATE_TIME}}'
+    onFailure: Abort
+    nextStep: ScanPatchBaseline
+  - name: ScanPatchBaseline
+    action: 'aws:runCommand'
+    inputs:
+      DocumentName: AWS-RunPatchBaseline
+      InstanceIds:
+        - '{{InstanceId}}'
+      Parameters:
+        Operation: Scan
+    onFailure: Abort
+    nextStep: UpdateSSMAgent
+  - name: UpdateSSMAgent
+    action: 'aws:runCommand'
+    inputs:
+      InstanceIds:
+        - '{{InstanceId}}'
+      DocumentName: AWS-UpdateSSMAgent
+    onFailure: Abort
+    nextStep: ApplyPatchBaseline
+  - name: ApplyPatchBaseline
+    action: 'aws:runCommand'
+    inputs:
+      DocumentName: AWS-RunPatchBaseline
+      InstanceIds:
+        - '{{InstanceId}}'
+      TimeoutSeconds: '{{UpdateTimeout}}'
+      Parameters:
+        Operation: Install
+    onFailure: Abort
+    nextStep: DeleteBackup
+  - name: DeleteBackup
+    action: 'aws:deleteImage'
+    inputs:
+      ImageId: '{{CreateBackup.ImageId}}'
+    onFailure: Continue
+  - name: SuccessNotification
+    action: 'aws:invokeLambdaFunction'
+    inputs:
+      InvocationType: RequestResponse
+      FunctionName: SSM-EC2-Patching-Success
+    description: Notifies only if patching succeeds.
+  - name: FailureNotification
+    action: 'aws:invokeLambdaFunction'
+    inputs:
+      InvocationType: RequestResponse
+      FunctionName: SSM-EC2-Patching-Fail-Notify
+    description: Notifies only if patching fails.
