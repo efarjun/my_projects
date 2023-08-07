@@ -1,0 +1,51 @@
+version: 0.2
+
+env:
+  git-credential-helper: yes
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - python -m pip install -U pip
+      - pip install git-remote-codecommit
+      - curl -o terraform.zip https://releases.hashicorp.com/terraform/0.14.0/terraform_0.14.0_linux_amd64.zip
+      - unzip terraform.zip
+      - chmod +x terraform
+      - mv terraform /usr/local/bin/
+      - terraform --version
+
+  pre_build:
+    commands:
+      - git clone codecommit://terraform-pipeline-test terraform-pipeline-test
+      - cd "terraform-pipeline-test"
+      - pwd
+      - git config --global init.defaultBranch main
+      - git status
+      
+      
+  build:
+    commands:
+      #- cd "terraform-pipeline-test"
+      - ls -al
+      - lines=$(git diff --name-only HEAD HEAD~1 | cut -d "/" -f1)
+      - echo $lines
+
+  post_build:
+    commands:
+      - for i in $lines; do cd "$CODEBUILD_SRC_DIR/terraform-pipeline-test/$i"; echo $i; terraform init; terraform plan; done
+      
+#      - terraform init -input=false --backend-config=./env_vars/${TF_ENV}.conf
+#      - terraform plan -input=false -var-file=./env_vars/${TF_ENV}.tfvars -auto-approve
+
+# artifacts:
+#   files:
+#     - location
+#   name: $(date +%Y-%m-%d)
+#   discard-paths: yes
+#   base-directory: location
+
+# cache:
+#   paths:
+#     - paths
