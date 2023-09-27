@@ -1,4 +1,4 @@
-# The following script iterated through a list of users and returns their username if a workspace exists.
+# The following script iterated through a list of users and returns their username if a workspace does not exist for them.
 
 #!/usr/bin/python3
 
