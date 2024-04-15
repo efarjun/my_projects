@@ -1,4 +1,4 @@
-# The following script iterated through a list of users and returns their username if a workspace does not exist for them.
+# The following script iterates through a list of users and returns their username if a workspace does not exist for them.
 
 #!/usr/bin/python3
 
@@ -10,7 +10,7 @@ client = boto3.client('workspaces', region_name='us-east-1')
 # List of usernames to check
 usernames = ["user1", "user2"]
 # Directory ID for your AWS Workspaces directory
-directory_id = "d-90674bc264"
+directory_id = "d-12345" # Specify ID of directory
 
 # Iterate over the list and get the Workspace ID or an error message
 for username in usernames:
