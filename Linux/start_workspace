@@ -1,0 +1,30 @@
+#!/bin/bash
+#allows you to user either workspace username or computer name as an argument to start workspace from cli.
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 <username|computer-name|workspace-id>"
+  exit 1
+fi
+
+input=$1
+workspace_id=""
+
+# Check if the input is a valid Workspace ID (assuming Workspace IDs follow a specific pattern)
+if [[ $input =~ ^ws-[0-9a-f]+$ ]]; then
+  workspace_id=$input
+else
+  # Try to find the workspace ID by username
+  workspace_id=$(aws workspaces describe-workspaces --region us-east-1 | jq -r --arg input "$input" '.Workspaces[] | select(.UserName | ascii_downcase | contains($input | ascii_downcase)) | .WorkspaceId')
+
+  if [ -z "$workspace_id" ]; then
+    # If no workspace ID found by username, try by computer name
+    workspace_id=$(aws workspaces describe-workspaces --region us-east-1 | jq -r --arg input "$input" '.Workspaces[] | select(.ComputerName | ascii_downcase | contains($input | ascii_downcase)) | .WorkspaceId')
+  fi
+fi
+
+if [ -z "$workspace_id" ]; then
+  echo "No workspace found for input: $input"
+  exit 1
+fi
+
+aws workspaces start-workspaces --start-workspace-requests WorkspaceId=$workspace_id --region us-east-1
