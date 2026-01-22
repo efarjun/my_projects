@@ -1,2 +1,0 @@
-Delete empty lines:
-sed '/^$/d' file.txt
