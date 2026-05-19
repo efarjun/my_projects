@@ -1,0 +1,92 @@
+version: 0.2
+
+env:
+  variables:
+    # Use modern, secure Terraform versions
+    TF_VERSION: "1.10.0" 
+    TF_IN_AUTOMATION: "true"
+  git-credential-helper: yes
+  # Cache Terraform plugins to speed up builds drastically
+  cache:
+    paths:
+      - '/root/.terraform.d/plugin-cache/**/*'
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo "Installing dependencies and Terraform..."
+      - python -m pip install --upgrade pip --quiet
+      - pip install git-remote-codecommit --quiet
+      - curl -sL https://hashicorp.com{TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip -o terraform.zip
+      - unzip -q terraform.zip
+      - chmod +x terraform && mv terraform /usr/local/bin/
+      - terraform --version
+      # Set up local plugin cache directory
+      - mkdir -p /root/.terraform.d/plugin-cache
+      - export TF_PLUGIN_CACHE_DIR="/root/.terraform.d/plugin-cache"
+
+  pre_build:
+    commands:
+      - echo "Cloning repository and evaluating changes..."
+      - git clone codecommit://terraform-infrastructure terraform-infrastructure
+      - cd terraform-infrastructure
+      
+      # Safely checkout the target branch
+      - git checkout "${sourceBranch:-master}"
+      
+      # Identify changed directories safely, filtering out root files (like README.md)
+      - echo "Determining modified Terraform modules..."
+      - CHANGED_DIRS=$(git diff --name-only HEAD HEAD~1 | grep '/' | dirname | sort -u || true)
+      
+      # Fail fast if there are syntax or formatting errors before planning/applying
+      - |
+        for dir in $CHANGED_DIRS; do
+          if [ -d "$dir" ] && [ -f "$dir/main.tf" ]; then
+            echo "Validating directory: $dir"
+            cd "$CODEBUILD_SRC_DIR/terraform-infrastructure/$dir"
+            terraform init -backend=false -input=false
+            terraform fmt -check
+            terraform validate
+          fi
+        done
+
+  build:
+    commands:
+      - echo "Executing plans and applications..."
+      - cd "$CODEBUILD_SRC_DIR/terraform-infrastructure"
+      
+      # Re-evaluate the loops safely using the structured validation step
+      - |
+        for dir in $CHANGED_DIRS; do
+          if [ -d "$dir" ] && [ -f "$dir/main.tf" ]; then
+            echo "--------------------------------------------------"
+            echo "Processing Target Directory: $dir"
+            echo "--------------------------------------------------"
+            cd "$CODEBUILD_SRC_DIR/terraform-infrastructure/$dir"
+            
+            # Step 1: Real Init with Backend
+            terraform init -input=false
+            
+            # Step 2: Safe Workspace Selection/Creation
+            if ! terraform workspace select prod; then
+              echo "Workspace 'prod' not found. Creating it..."
+              terraform workspace new prod
+            fi
+            
+            # Step 3: Plan first, then apply the explicit plan file (Production standard)
+            terraform plan -input=false -out=tfplan
+            terraform apply -input=false -auto-approve tfplan
+          else
+            echo "Skipping non-module directory: $dir"
+          fi
+        done
+
+  post_build:
+    commands:
+      - echo "Pipeline process completed on $(date)"
+
+cache:
+  paths:
+    - '/root/.terraform.d/plugin-cache/**/*'
