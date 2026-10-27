@@ -36,7 +36,7 @@ sudo dnf check-release-update
 
 sudo dnf upgrade --releasever=2023.11.20260526
 
-Update installed packages:
+# Update installed packages:
 sudo dnf update
 
 # View all available release versions:
