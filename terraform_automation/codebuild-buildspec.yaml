@@ -1,0 +1,97 @@
+# Terraform Auto-Deploy Pipeline
+# This AWS CodeBuild buildspec automates Terraform deployments for a multi-directory infrastructure repository stored in AWS CodeCommit.
+
+version: 0.2
+
+env:
+  git-credential-helper: yes
+
+phases:
+
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - set -e
+
+      - python -m pip install --upgrade pip
+      - pip install git-remote-codecommit
+
+      # Install Terraform
+      - TERRAFORM_VERSION=1.9.8
+      - curl -fsSL -o terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+      - unzip -o terraform.zip
+      - chmod +x terraform
+      - mv terraform /usr/local/bin/
+      - terraform version
+
+  pre_build:
+    commands:
+      - set -e
+
+      - git clone codecommit://terraform-infrastructure terraform-infrastructure
+      - cd terraform-infrastructure
+
+      - git status
+      - aws sts get-caller-identity
+
+      # Make sure history exists
+      - git fetch --all
+
+  build:
+    commands:
+      - set -e
+
+      - cd "$CODEBUILD_SRC_DIR/terraform-infrastructure"
+
+      - echo "Branch: $sourceBranch"
+      - git checkout "$sourceBranch"
+
+      - echo "Changed files:"
+      - git diff --name-only HEAD~1 HEAD
+
+      # Determine changed directories only once
+      - |
+        CHANGED_DIRS=$(git diff --name-only HEAD~1 HEAD \
+          | xargs -n1 dirname \
+          | sort -u)
+
+        echo "Changed directories:"
+        echo "$CHANGED_DIRS"
+
+      - |
+        for DIR in $CHANGED_DIRS; do
+
+          FULL_PATH="$CODEBUILD_SRC_DIR/terraform-infrastructure/$DIR"
+
+          # Skip paths that don't exist
+          [ -d "$FULL_PATH" ] || continue
+
+          # Skip non-Terraform folders
+          if ! find "$FULL_PATH" -maxdepth 1 -name "*.tf" | grep -q .; then
+            echo "Skipping $DIR (no Terraform files)"
+            continue
+          fi
+
+          echo "Processing $DIR"
+
+          cd "$FULL_PATH"
+
+          terraform init -input=false
+
+          terraform fmt -check -recursive
+
+          terraform validate
+
+          terraform workspace select prod \
+            || terraform workspace new prod
+
+          terraform apply \
+            -input=false \
+            -auto-approve
+
+        done
+
+  post_build:
+    commands:
+      - echo "Terraform deployment completed."
