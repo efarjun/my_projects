@@ -14,7 +14,7 @@ data "terraform_remote_state" "vpc" {
   backend = "s3"
 
   config = {
-    bucket               = "bhb-terraform-bucket"
+    bucket               = "abc-terraform-bucket"
     key                  = "network/vpc/terraform.tfstate"
     region               = "us-east-2"
     workspace_key_prefix = "env"
@@ -29,7 +29,7 @@ data "terraform_remote_state" "iam" {
   backend = "s3"
 
   config = {
-    bucket               = "bhb-terraform-bucket"
+    bucket               = "abc-terraform-bucket"
     key                  = "compute/iam/terraform.tfstate"
     region               = "us-east-2"
     workspace_key_prefix = "env"
@@ -41,9 +41,9 @@ data "terraform_remote_state" "iam" {
 # ── Security Groups ───────────────────────────────────────────────────────────
 
 module "web_server_sg" {
-  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/bhb-terraform-modules//security-group?ref=main"
+  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/abc-terraform-modules//security-group?ref=main"
 
-  name   = "bhb-${local.workspace}-web-server-sg"
+  name   = "abc-${local.workspace}-web-server-sg"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress_rules = [
@@ -72,9 +72,9 @@ module "web_server_sg" {
 }
 
 module "batch_server_sg" {
-  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/bhb-terraform-modules//security-group?ref=main"
+  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/abc-terraform-modules//security-group?ref=main"
 
-  name   = "bhb-${local.workspace}-batch-server-sg"
+  name   = "abc-${local.workspace}-batch-server-sg"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress_rules = [
@@ -105,13 +105,13 @@ module "batch_server_sg" {
 # ── EC2 Instances ─────────────────────────────────────────────────────────────
 
 module "web_server" {
-  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/bhb-terraform-modules//ec2?ref=main"
+  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/abc-terraform-modules//ec2?ref=main"
 
-  name                          = "bhb-${local.workspace}-web-server"
+  name                          = "abc-${local.workspace}-web-server"
   instance_type                 = "t3.xlarge"
   subnet_id                     = data.terraform_remote_state.vpc.outputs.private_subnet_ids[0]
   vpc_id                        = data.terraform_remote_state.vpc.outputs.vpc_id
-  key_name                      = "bhb-${local.workspace}-key"
+  key_name                      = "abc-${local.workspace}-key"
   iam_instance_profile          = data.terraform_remote_state.iam.outputs.ec2_instance_profile_name
   create_security_group         = false
   additional_security_group_ids = [module.web_server_sg.id]
@@ -120,13 +120,13 @@ module "web_server" {
 }
 
 module "batch_server" {
-  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/bhb-terraform-modules//ec2?ref=main"
+  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/abc-terraform-modules//ec2?ref=main"
 
-  name                          = "bhb-${local.workspace}-batch-server"
+  name                          = "abc-${local.workspace}-batch-server"
   instance_type                 = "c5.large"
   subnet_id                     = data.terraform_remote_state.vpc.outputs.private_subnet_ids[0]
   vpc_id                        = data.terraform_remote_state.vpc.outputs.vpc_id
-  key_name                      = "bhb-${local.workspace}-key"
+  key_name                      = "abc-${local.workspace}-key"
   iam_instance_profile          = data.terraform_remote_state.iam.outputs.ec2_instance_profile_name
   create_security_group         = false
   additional_security_group_ids = [module.batch_server_sg.id]
@@ -140,7 +140,7 @@ data "terraform_remote_state" "ad" {
   backend = "s3"
 
   config = {
-    bucket = "bhb-terraform-bucket"
+    bucket = "abc-terraform-bucket"
     key    = "compute/active-directory/terraform.tfstate"
     region = "us-east-2"
   }
@@ -176,7 +176,7 @@ resource "aws_ssm_association" "aws_packages" {
   }
 
   name             = "AWS-ConfigureAWSPackage"
-  association_name = "bhb-${local.workspace}-install-${each.key}"
+  association_name = "abc-${local.workspace}-install-${each.key}"
 
   targets {
     key    = "InstanceIds"
@@ -212,7 +212,7 @@ resource "aws_ssm_association" "vss_agent" {
 
 resource "aws_ssm_association" "third_party_packages" {
   name             = "AWS-RunPowerShellScript"
-  association_name = "bhb-${local.workspace}-install-third-party"
+  association_name = "abc-${local.workspace}-install-third-party"
 
   targets {
     key    = "InstanceIds"
