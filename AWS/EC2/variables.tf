@@ -1,7 +1,7 @@
 variable "owner" {
   description = "Owner name for tagging"
   type        = string
-  default     = "Josh Owoseni"
+  default     = "John Doe"
 }
 
 variable "management_cidr_blocks" {
