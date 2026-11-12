@@ -6,17 +6,17 @@ moved {
 module "pipeline_common_east" {
   count = terraform.workspace == "uat" ? 1 : 0
 
-  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/bhb-terraform-modules//pipeline?ref=main"
+  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/abc-terraform-modules//pipeline?ref=main"
 
   providers = { aws = aws.common }
 
-  project                = "bhb"
+  project                = "abc"
   env                    = "common-east"
   module_name            = "ec2"
   working_dir            = "compute/ec2"
-  artifact_bucket_name   = "bhb-pipeline-artifacts"
-  repo_name              = "bhb-infra-live"
-  codepipeline_role_name = "bhb-codepipeline-role"
+  artifact_bucket_name   = "abc-pipeline-artifacts"
+  repo_name              = "abc-infra-live"
+  codepipeline_role_name = "abc-codepipeline-role"
 }
 
 moved {
@@ -27,17 +27,17 @@ moved {
 module "pipeline_common_west" {
   count = terraform.workspace == "uat" ? 1 : 0
 
-  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/bhb-terraform-modules//pipeline?ref=main"
+  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/abc-terraform-modules//pipeline?ref=main"
 
   providers = { aws = aws.common }
 
-  project                = "bhb"
+  project                = "abc"
   env                    = "common-west"
   module_name            = "ec2"
   working_dir            = "compute/ec2"
-  artifact_bucket_name   = "bhb-pipeline-artifacts"
-  repo_name              = "bhb-infra-live"
-  codepipeline_role_name = "bhb-codepipeline-role"
+  artifact_bucket_name   = "abc-pipeline-artifacts"
+  repo_name              = "abc-infra-live"
+  codepipeline_role_name = "abc-codepipeline-role"
 }
 
 moved {
@@ -48,17 +48,17 @@ moved {
 module "pipeline_uat" {
   count = terraform.workspace == "uat" ? 1 : 0
 
-  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/bhb-terraform-modules//pipeline?ref=main"
+  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/abc-terraform-modules//pipeline?ref=main"
 
   providers = { aws = aws.common }
 
-  project                = "bhb"
+  project                = "abc"
   env                    = "uat"
   module_name            = "ec2"
   working_dir            = "compute/ec2"
-  artifact_bucket_name   = "bhb-pipeline-artifacts"
-  repo_name              = "bhb-infra-live"
-  codepipeline_role_name = "bhb-codepipeline-role"
+  artifact_bucket_name   = "abc-pipeline-artifacts"
+  repo_name              = "abc-infra-live"
+  codepipeline_role_name = "abc-codepipeline-role"
 }
 
 moved {
@@ -69,17 +69,17 @@ moved {
 module "pipeline_prod" {
   count = terraform.workspace == "uat" ? 1 : 0
 
-  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/bhb-terraform-modules//pipeline?ref=main"
+  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/abc-terraform-modules//pipeline?ref=main"
 
   providers = { aws = aws.common }
 
-  project                = "bhb"
+  project                = "abc"
   env                    = "prod"
   module_name            = "ec2"
   working_dir            = "compute/ec2"
-  artifact_bucket_name   = "bhb-pipeline-artifacts"
-  repo_name              = "bhb-infra-live"
-  codepipeline_role_name = "bhb-codepipeline-role"
+  artifact_bucket_name   = "abc-pipeline-artifacts"
+  repo_name              = "abc-infra-live"
+  codepipeline_role_name = "abc-codepipeline-role"
 }
 
 moved {
@@ -90,15 +90,15 @@ moved {
 module "pipeline_dr" {
   count = terraform.workspace == "uat" ? 1 : 0
 
-  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/bhb-terraform-modules//pipeline?ref=main"
+  source = "git::https://git-codecommit.us-east-2.amazonaws.com/v1/repos/abc-terraform-modules//pipeline?ref=main"
 
   providers = { aws = aws.common }
 
-  project                = "bhb"
+  project                = "abc"
   env                    = "dr"
   module_name            = "ec2"
   working_dir            = "compute/ec2"
-  artifact_bucket_name   = "bhb-pipeline-artifacts"
-  repo_name              = "bhb-infra-live"
-  codepipeline_role_name = "bhb-codepipeline-role"
+  artifact_bucket_name   = "abc-pipeline-artifacts"
+  repo_name              = "abc-infra-live"
+  codepipeline_role_name = "abc-codepipeline-role"
 }
