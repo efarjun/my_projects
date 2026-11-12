@@ -16,7 +16,7 @@ provider "aws" {
   region = "us-east-2"
 
   assume_role {
-    role_arn     = "arn:aws:iam::608420806074:role/iac"
+    role_arn     = "arn:aws:iam::6084209775896:role/iac"
     session_name = "terraform-${local.workspace}-pipeline"
   }
 }
