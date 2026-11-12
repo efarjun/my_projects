@@ -5,35 +5,35 @@ locals {
 
   config = {
     common-east = {
-      account_id      = "608420806074"
+      account_id      = "608424306094"
       environment     = "common"
       deployment_role = "primary"
       region          = "us-east-2"
       vpc_cidr        = "10.100.0.0/16"
     }
     common-west = {
-      account_id      = "608420806074"
+      account_id      = "60849876074"
       environment     = "common"
       deployment_role = "dr"
       region          = "us-west-2"
       vpc_cidr        = "10.110.0.0/16"
     }
     uat = {
-      account_id      = "188612031843"
+      account_id      = "188772031093"
       environment     = "uat"
       deployment_role = "primary"
       region          = "us-east-2"
       vpc_cidr        = "10.102.0.0/16"
     }
     prod = {
-      account_id      = "119317299655"
+      account_id      = "119217098655"
       environment     = "prod"
       deployment_role = "primary"
       region          = "us-east-2"
       vpc_cidr        = "10.101.0.0/16"
     }
     dr = {
-      account_id      = "119317299655"
+      account_id      = "177317294895"
       environment     = "prod"
       deployment_role = "dr"
       region          = "us-west-2"
@@ -79,14 +79,14 @@ locals {
 
   # S3 bucket (central, in common account) where third-party installers are pre-staged.
   # Managed by compute/software-distribution. Spoke accounts access it cross-account.
-  software_bucket = "bhb-software-packages"
+  software_bucket = "abc-software-packages"
 
   # SSM Parameter Store paths — parameters are created by compute/software-distribution.
-  ssm_umbrella_org_id      = "/bhb/cisco-umbrella/org-id"
-  ssm_umbrella_fingerprint = "/bhb/cisco-umbrella/fingerprint"
-  ssm_okta_url             = "/bhb/okta/url"
-  ssm_okta_client_id       = "/bhb/okta/client-id"
-  ssm_okta_client_secret   = "/bhb/okta/client-secret"
-  ssm_automox_access_key   = "/bhb/automox/access-key"
-  ssm_crowdstrike_cid      = "/bhb/crowdstrike/cid"
+  ssm_umbrella_org_id      = "/abc/cisco-umbrella/org-id"
+  ssm_umbrella_fingerprint = "/abc/cisco-umbrella/fingerprint"
+  ssm_okta_url             = "/abc/okta/url"
+  ssm_okta_client_id       = "/abc/okta/client-id"
+  ssm_okta_client_secret   = "/abc/okta/client-secret"
+  ssm_automox_access_key   = "/abc/automox/access-key"
+  ssm_crowdstrike_cid      = "/abc/crowdstrike/cid"
 }
